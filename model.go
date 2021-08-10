@@ -11,7 +11,7 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 )
 
-type Model interface{
+type Model interface {
 	SetProgram()
 	SetMatrixes()
 	SetTexture()

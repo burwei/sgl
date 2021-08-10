@@ -21,8 +21,8 @@ func NewViewPoint(width int, height int) SimpleViewPoint {
 	vp.Fovy = mgl32.DegToRad(45.0)
 	vp.Aspect = float32(width) / float32(height)
 	vp.Near = 0.1
-	vp.Far = 10
-	vp.Eye = mgl32.Vec3{3, 3, 3}
+	vp.Far = 100
+	vp.Eye = mgl32.Vec3{50, 50, 50}
 	vp.Center = mgl32.Vec3{0, 0, 0}
 	vp.Top = mgl32.Vec3{0, 1, 0}
 	return vp
