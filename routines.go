@@ -33,7 +33,7 @@ func InitGlfwAndOpenGL(width int, height int) *glfw.Window {
 	return window
 }
 
-func InitGlobalSettings() {
+func SetBasicGlobalConfigs() {
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(1.0, 1.0, 1.0, 1.0)

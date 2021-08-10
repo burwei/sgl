@@ -50,19 +50,16 @@ const (
 	` + "\x00"
 )
 
-func NewSimpleFShader(r float32, g float32, b float32, a float32) string {
-	source1 := `
-		#version 330
+func NewSimpleFShader(r float32, g float32, b float32) string {
+	source := fmt.Sprintf(
+		`#version 330
 		out vec4 outputColor;
 		void main() {
-		outputColor = 
-	`
-	source2 := fmt.Sprintf(
-		"vec4(%.3f, %.3f, %.3f, %.3f);}",
+		outputColor = vec4(%.3f, %.3f, %.3f, 1.0);
+		}`,
 		r,
 		g,
 		b,
-		a,
 	)
-	return source1 + source2
+	return source + "\x00"
 }

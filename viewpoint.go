@@ -16,7 +16,7 @@ type SimpleViewPoint struct {
 	Top               mgl32.Vec3
 }
 
-func NewViewPoint(width int, height int) SimpleViewPoint {
+func NewViewpoint(width int, height int) SimpleViewPoint {
 	vp := SimpleViewPoint{}
 	vp.Fovy = mgl32.DegToRad(45.0)
 	vp.Aspect = float32(width) / float32(height)

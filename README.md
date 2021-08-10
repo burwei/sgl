@@ -1,6 +1,7 @@
 # SimpleGL
-SimpleGL provides a set of simple and useful tools for modern OpenGL.  
-This is a pure Go repo and using the packages below:
+SimpleGL provides a set of simple tools for modern OpenGL. 
+It's a pure Go repo and is fully compatible with go-gl ecosystem. 
+It uses the packages below:
  - [go-gl]
  - [glfw]
  - [mgl32]
