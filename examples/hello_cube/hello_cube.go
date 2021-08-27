@@ -23,10 +23,10 @@ func main() {
 	vp := sgl.NewViewpoint(windowWidth, windowHeight)
 
 	cube := sgl.SimpleModel{}
-	cube.SetProgram(sgl.TexVShader, sgl.TexFShader)
+	cube.SetProgram(sgl.NewTexVShader(), sgl.NewTexFShader())
 	cube.SetMatrixes(&vp)
 	cube.SetTexture("wood.png") //source: https://unsplash.com/photos/mI-QcAP95Ok
-	cube.SetVao(sgl.NewSimpleCube())
+	cube.SetVao(sgl.NewSimpleCube(10))
 
 	sgl.SetBasicGlobalConfigs()
 

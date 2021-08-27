@@ -23,9 +23,9 @@ func main() {
 	vp := sgl.NewViewpoint(windowWidth, windowHeight)
 
 	cube := sgl.SimpleModel{}
-	cube.SetProgram(sgl.SimpleVShader, sgl.NewSimpleFShader(1, 0.5, 0.5))
+	cube.SetProgram(sgl.NewSimpleVShader(), sgl.NewSimpleFShader(1, 0.5, 0.5))
 	cube.SetMatrixes(&vp)
-	cube.SetVao(sgl.NewSimpleCube())
+	cube.SetVao(sgl.NewSimpleCube(10))
 
 	sgl.SetBasicGlobalConfigs()
 

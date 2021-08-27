@@ -4,8 +4,9 @@ import (
 	"fmt"
 )
 
-const (
-	SimpleVShader = `
+func NewSimpleVShader() string {
+	return fmt.Sprintf(
+		`
 		#version 330
 
 		uniform mat4 projection;
@@ -17,8 +18,30 @@ const (
 		void main() {
 		gl_Position = projection * camera * model * vec4(vert, 1);
 		}
-	` + "\x00"
-	TexVShader = `
+		%v`,
+		"\x00",
+	)
+}
+
+func NewSimpleFShader(r float32, g float32, b float32) string {
+	return fmt.Sprintf(
+		`
+		#version 330
+		out vec4 outputColor;
+		void main() {
+			outputColor = vec4(%.3f, %.3f, %.3f, 1.0);
+		}
+		%v`,
+		r,
+		g,
+		b,
+		"\x00",
+	)
+}
+
+func NewTexVShader() string {
+	return fmt.Sprintf(
+		`
 		#version 330
 
 		uniform mat4 projection;
@@ -34,8 +57,14 @@ const (
 		fragTexCoord = vertTexCoord;
 		gl_Position = projection * camera * model * vec4(vert, 1);
 		}
-	` + "\x00"
-	TexFShader = `
+		%v`,
+		"\x00",
+	)
+}
+
+func NewTexFShader() string{
+	return fmt.Sprintf(
+		`
 		#version 330
 
 		uniform sampler2D tex;
@@ -47,19 +76,7 @@ const (
 		void main() {
 		outputColor = texture(tex, fragTexCoord);
 		}
-	` + "\x00"
-)
-
-func NewSimpleFShader(r float32, g float32, b float32) string {
-	source := fmt.Sprintf(
-		`#version 330
-		out vec4 outputColor;
-		void main() {
-		outputColor = vec4(%.3f, %.3f, %.3f, 1.0);
-		}`,
-		r,
-		g,
-		b,
+		%v`,
+		"\x00",
 	)
-	return source + "\x00"
 }
