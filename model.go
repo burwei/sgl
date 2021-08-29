@@ -482,7 +482,6 @@ func (m *SimpleLightModel) addNormal(vertices []float32) []float32 {
 			(vertices[i+1] + vertices[i+4] + vertices[i+7]) / 3,
 			(vertices[i+2] + vertices[i+5] + vertices[i+8]) / 3,
 		}
-		fmt.Printf("center: %v\n", center)
 		// vector: pt1 -> pt2
 		vec1 := []float32{
 			vertices[i+3] - vertices[i],
@@ -501,10 +500,8 @@ func (m *SimpleLightModel) addNormal(vertices []float32) []float32 {
 			vec1[2]*vec2[0] - vec1[0]*vec2[2],
 			vec1[0]*vec2[1] - vec1[1]*vec2[0],
 		}
-		fmt.Printf("normal: %v\n", normal)
 		// check if normal . center (dot product) is negative
 		dot := normal[0]*center[0]+normal[1]*center[1]+normal[2]*center[2]
-		fmt.Printf("dot: %v\n", dot) 
 		if dot < 0 {
 			normal = []float32{
 				-normal[0],
@@ -512,7 +509,6 @@ func (m *SimpleLightModel) addNormal(vertices []float32) []float32 {
 				-normal[2],
 			}
 		}
-		fmt.Println(normal)
 		// newPt1
 		newVertices = append(newVertices, vertices[i])
 		newVertices = append(newVertices, vertices[i+1])
