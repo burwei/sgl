@@ -4,6 +4,9 @@ import (
 	"fmt"
 )
 
+// This file contains several simple GLSL code
+// to provides some simple vertex shaders and fragment shaders.
+
 func NewSimpleVShader() string {
 	return fmt.Sprintf(
 		`
@@ -13,10 +16,10 @@ func NewSimpleVShader() string {
 		uniform mat4 camera;
 		uniform mat4 model;
 
-		in vec3 vert;
+		layout (location = 0) in vec3 vert;
 
 		void main() {
-		gl_Position = projection * camera * model * vec4(vert, 1);
+			gl_Position = projection * camera * model * vec4(vert, 1);
 		}
 		%v`,
 		"\x00",
@@ -48,14 +51,14 @@ func NewTexVShader() string {
 		uniform mat4 camera;
 		uniform mat4 model;
 
-		in vec3 vert;
-		in vec2 vertTexCoord;
+		layout (location = 0) in vec3 vert;
+		layout (location = 1) in vec2 vertTexCoord;
 
 		out vec2 fragTexCoord;
 
 		void main() {
-		fragTexCoord = vertTexCoord;
-		gl_Position = projection * camera * model * vec4(vert, 1);
+			fragTexCoord = vertTexCoord;
+			gl_Position = projection * camera * model * vec4(vert, 1);
 		}
 		%v`,
 		"\x00",
@@ -74,7 +77,7 @@ func NewTexFShader() string{
 		out vec4 outputColor;
 
 		void main() {
-		outputColor = texture(tex, fragTexCoord);
+			outputColor = texture(tex, fragTexCoord);
 		}
 		%v`,
 		"\x00",

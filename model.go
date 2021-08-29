@@ -117,13 +117,27 @@ func (m *SimpleModel) SetVao(vertices *[]float32) {
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, len(*vertices)*4, gl.Ptr(*vertices), gl.STATIC_DRAW)
 
-	vertAttrib := uint32(gl.GetAttribLocation(m.Program, gl.Str("vert\x00")))
+	vertAttrib := uint32(0) // 0 is the index of variable "vert" defined in GLSL
 	gl.EnableVertexAttribArray(vertAttrib)
-	gl.VertexAttribPointerWithOffset(vertAttrib, 3, gl.FLOAT, false, 5*4, 0)
+	gl.VertexAttribPointerWithOffset(
+		vertAttrib,
+		3,
+		gl.FLOAT,
+		false,
+		5*4, // 4 is the sizeof float32, and there're 5 floats per vertex in the vertex array.
+		0,
+	)
 
-	texCoordAttrib := uint32(gl.GetAttribLocation(m.Program, gl.Str("vertTexCoord\x00")))
+	texCoordAttrib := uint32(1) // 1 is the index of variable "vertTexCoord" defined in GLSL
 	gl.EnableVertexAttribArray(texCoordAttrib)
-	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 5*4, 3*4)
+	gl.VertexAttribPointerWithOffset(
+		texCoordAttrib,
+		2,
+		gl.FLOAT,
+		false,
+		5*4,
+		3*4, // use offset 3*4 because we use only last 2 floats of each vertex here.
+	)
 
 	m.Vao = vao
 }
@@ -162,7 +176,6 @@ func (m *SimpleModel) SetTexture(file string) {
 		gl.RGBA,
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(rgba.Pix))
-
 	m.Texture = texture
 }
 
