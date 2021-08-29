@@ -21,12 +21,12 @@ func main() {
 	defer glfw.Terminate()
 
 	vp := sgl.NewViewpoint(windowWidth, windowHeight)
-	ls := sgl.NewLightSrc(0.2, 0, 0, 100, 1, 1, 1)
+	ls := sgl.NewLightSrc(0.3, 1, 8, 0, 0, 20, 1, 1, 1)
 
 	cube := sgl.SimpleLightModel{}
 	cube.SetProgram(sgl.NewSimpleLightVShader(), sgl.NewSimpleLightFShader(1, 0.3, 0.3))
 	cube.SetMatrixes(&vp, &ls)
-	cube.SetVao(sgl.NewSimpleCube(10))
+	cube.SetVao(sgl.NewSimpleCube(20))
 
 	sgl.SetBasicGlobalConfigs()
 

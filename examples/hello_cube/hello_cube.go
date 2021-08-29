@@ -25,7 +25,7 @@ func main() {
 	cube := sgl.SimpleModel{}
 	cube.SetProgram(sgl.NewSimpleVShader(), sgl.NewSimpleFShader(1, 0.3, 0.3))
 	cube.SetMatrixes(&vp)
-	cube.SetVao(sgl.NewSimpleCube(10))
+	cube.SetVao(sgl.NewSimpleCube(20))
 
 	sgl.SetBasicGlobalConfigs()
 

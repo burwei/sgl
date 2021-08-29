@@ -85,6 +85,7 @@ func NewTexFShader() string{
 }
 
 func NewSimpleLightVShader() string {
+	// Todo: avoid inverse calculation 
 	return fmt.Sprintf(
 		`
 		#version 330 core
@@ -101,7 +102,7 @@ func NewSimpleLightVShader() string {
 		void main()
 		{
 			FragPos = vec3(model * vec4(aPos, 1.0));
-			Normal = vec3(model * vec4(aNormal, 1.0));  
+			Normal = mat3(transpose(inverse(model))) * aNormal;   
 
 			gl_Position = projection * camera * vec4(FragPos, 1.0);
 		}
@@ -120,13 +121,17 @@ func NewSimpleLightFShader(r float32, g float32, b float32) string {
 		in vec3 FragPos;  
 		
 		uniform float ambientStrength;
+		uniform float specularStrength;
+		uniform float shininess; 
 		uniform vec3 lightPos; 
 		uniform vec3 lightColor;
+		uniform vec3 viewPos;
 
 		void main()
 		{
+			vec3 objectColor = vec3(%.3f, %.3f, %.3f);
+
 			// ambient
-			vec3 fakeLightColor = vec3(1.0,1.0,1.0);
 			vec3 ambient = ambientStrength * lightColor;
 				
 			// diffuse 
@@ -134,10 +139,14 @@ func NewSimpleLightFShader(r float32, g float32, b float32) string {
 			vec3 lightDir = normalize(lightPos - FragPos);
 			float diff = max(dot(norm, lightDir), 0.0);
 			vec3 diffuse = diff * lightColor;
-			
-			vec3 objectColor = vec3(%.3f, %.3f, %.3f);
 				
-			vec3 result = (ambient + diffuse) * objectColor;
+			// specular
+			vec3 viewDir = normalize(viewPos - FragPos);
+			vec3 reflectDir = reflect(-lightDir, norm);  
+			float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+			vec3 specular = specularStrength * spec * lightColor;  
+				
+			vec3 result = (ambient + diffuse + specular) * objectColor;
 			FragColor = vec4(result, 1.0);
 		} 
 		%v`,

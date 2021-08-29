@@ -12,6 +12,7 @@ type SimpleViewPoint struct {
 	Camera            mgl32.Mat4
 	CameraUniform     int32
 	Eye               mgl32.Vec3
+	EyePosUniform     int32
 	Center            mgl32.Vec3
 	Top               mgl32.Vec3
 }

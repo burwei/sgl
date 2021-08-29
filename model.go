@@ -396,17 +396,21 @@ func (m *SimpleLightModel) SetMatrixes(vp *SimpleViewPoint, ls *SimpleLightSrc) 
 	gl.Uniform3fv(ls.PosUniform, 1, &ls.Pos[0])
 	ls.ColorUniform = gl.GetUniformLocation(m.Program, gl.Str("lightColor\x00"))
 	gl.Uniform3fv(ls.ColorUniform, 1, &ls.Color[0])
-	ls.AmbientUniform = gl.GetUniformLocation(m.Program, gl.Str("ambientStrength\x00"))
-	gl.Uniform1f(ls.AmbientUniform, ls.Ambient)
-
+	vp.EyePosUniform = gl.GetUniformLocation(m.Program, gl.Str("viewPos\x00"))
+	gl.Uniform3fv(vp.EyePosUniform, 1, &vp.Eye[0])
+	ls.AmbientStrengthUniform = gl.GetUniformLocation(m.Program, gl.Str("ambientStrength\x00"))
+	gl.Uniform1f(ls.AmbientStrengthUniform, ls.AmbientStrength)
+	ls.SpecularStrengthUniform = gl.GetUniformLocation(m.Program, gl.Str("specularStrength\x00"))
+	gl.Uniform1f(ls.ColorUniform, ls.SpecularStrength)
+	ls.ShininessUniform = gl.GetUniformLocation(m.Program, gl.Str("shininess\x00"))
+	gl.Uniform1f(ls.ShininessUniform, ls.Shininess)
+	
 	gl.BindFragDataLocation(m.Program, 0, gl.Str("outputColor\x00"))
 }
 
 func (m *SimpleLightModel) SetVao(vertices *[]float32) {
 	newVertices := m.addNormal(*vertices)
 	m.Vertices = &newVertices
-	// fmt.Printf("vertices: %v\n", len(*vertices))
-	// fmt.Printf("newVertices: %v\n", len(*m.Vertices))
 
 	var vao uint32
 	gl.GenVertexArrays(1, &vao)
@@ -452,7 +456,10 @@ func (m *SimpleLightModel) Render(vp *SimpleViewPoint, ls *SimpleLightSrc) {
 	gl.UniformMatrix4fv(m.ModelUniform, 1, false, &m.Model[0])
 	gl.UniformMatrix3fv(ls.PosUniform, 1, false, &ls.Pos[0])
 	gl.UniformMatrix3fv(ls.ColorUniform, 1, false, &ls.Color[0])
-	gl.Uniform1f(ls.AmbientUniform, ls.Ambient)
+	gl.UniformMatrix3fv(vp.EyePosUniform, 1, false, &vp.Eye[0])	
+	gl.Uniform1f(ls.AmbientStrengthUniform, ls.AmbientStrength)
+	gl.Uniform1f(ls.SpecularStrengthUniform, ls.SpecularStrength)
+	gl.Uniform1f(ls.ShininessUniform, ls.Shininess)
 	gl.BindVertexArray(m.Vao)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(*m.Vertices)/6)) // 6: X,Y,Z,NX,NY,NZ
 }

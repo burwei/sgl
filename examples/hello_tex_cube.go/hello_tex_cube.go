@@ -26,7 +26,7 @@ func main() {
 	cube.SetProgram(sgl.NewTexVShader(), sgl.NewTexFShader())
 	cube.SetMatrixes(&vp)
 	cube.SetTexture("wood.png") //source: https://unsplash.com/photos/mI-QcAP95Ok
-	cube.SetVao(sgl.NewUniTexCube(10))
+	cube.SetVao(sgl.NewUniTexCube(20))
 
 	sgl.SetBasicGlobalConfigs()
 
