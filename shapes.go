@@ -1,7 +1,62 @@
 package simplegl
 
-// NewSimpleCube will return a cube with side length l.
+// NewSimpleCube will return vertices of a cube with side length l.
 func NewSimpleCube(l float32) *[]float32{
+	return &[]float32{
+		//  X, Y, Z, U, V
+		// Bottom (-Y)
+		-l, -l, -l,
+		l, -l, -l,
+		-l, -l, l,
+		l, -l, -l,
+		l, -l, l,
+		-l, -l, l,
+	
+		// Top (+Y)
+		-l, l, -l,
+		-l, l, l,
+		l, l, -l,
+		l, l, -l,
+		-l, l, l,
+		l, l, l,
+	
+		// Front (+Z)
+		-l, -l, l,
+		l, -l, l,
+		-l, l, l,
+		l, -l, l,
+		l, l, l,
+		-l, l, l,
+	
+		// Back (-Z)
+		-l, -l, -l,
+		-l, l, -l,
+		l, -l, -l,
+		l, -l, -l,
+		-l, l, -l,
+		l, l, -l,
+	
+		// Left (-X)
+		-l, -l, l,
+		-l, l, -l,
+		-l, -l, -l,
+		-l, -l, l,
+		-l, l, l,
+		-l, l, -l,
+	
+		// Right (+X)
+		l, -l, l,
+		l, -l, -l,
+		l, l, -l,
+		l, -l, l,
+		l, l, -l,
+		l, l, l,
+	}
+}
+
+// NewUniTexCube will return vertices of a cube with side length l.
+// The vertices contains custom data (texture vector)
+func NewUniTexCube(l float32) *[]float32{
 	return &[]float32{
 		//  X, Y, Z, U, V
 		// Bottom (-Y)

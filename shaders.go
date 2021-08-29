@@ -83,3 +83,67 @@ func NewTexFShader() string{
 		"\x00",
 	)
 }
+
+func NewSimpleLightVShader() string {
+	return fmt.Sprintf(
+		`
+		#version 330 core
+		layout (location = 0) in vec3 aPos;
+		layout (location = 1) in vec3 aNormal;
+
+		out vec3 FragPos;
+		out vec3 Normal;
+
+		uniform mat4 projection;
+		uniform mat4 camera;
+		uniform mat4 model;
+
+		void main()
+		{
+			FragPos = vec3(model * vec4(aPos, 1.0));
+			Normal = vec3(model * vec4(aNormal, 1.0));  
+
+			gl_Position = projection * camera * vec4(FragPos, 1.0);
+		}
+		%v`,
+		"\x00",
+	)
+}
+
+func NewSimpleLightFShader(r float32, g float32, b float32) string {
+	return fmt.Sprintf(
+		`
+		#version 330 core
+		out vec4 FragColor;
+
+		in vec3 Normal;  
+		in vec3 FragPos;  
+		
+		uniform float ambientStrength;
+		uniform vec3 lightPos; 
+		uniform vec3 lightColor;
+
+		void main()
+		{
+			// ambient
+			vec3 fakeLightColor = vec3(1.0,1.0,1.0);
+			vec3 ambient = ambientStrength * lightColor;
+				
+			// diffuse 
+			vec3 norm = normalize(Normal);
+			vec3 lightDir = normalize(lightPos - FragPos);
+			float diff = max(dot(norm, lightDir), 0.0);
+			vec3 diffuse = diff * lightColor;
+			
+			vec3 objectColor = vec3(%.3f, %.3f, %.3f);
+				
+			vec3 result = (ambient + diffuse) * objectColor;
+			FragColor = vec4(result, 1.0);
+		} 
+		%v`,
+		r,
+		g,
+		b,
+		"\x00",
+	)
+}

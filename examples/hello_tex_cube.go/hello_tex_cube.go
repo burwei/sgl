@@ -22,10 +22,11 @@ func main() {
 
 	vp := sgl.NewViewpoint(windowWidth, windowHeight)
 
-	cube := sgl.SimpleModel{}
-	cube.SetProgram(sgl.NewSimpleVShader(), sgl.NewSimpleFShader(1, 0.3, 0.3))
+	cube := sgl.UniTexModel{}
+	cube.SetProgram(sgl.NewTexVShader(), sgl.NewTexFShader())
 	cube.SetMatrixes(&vp)
-	cube.SetVao(sgl.NewSimpleCube(10))
+	cube.SetTexture("wood.png") //source: https://unsplash.com/photos/mI-QcAP95Ok
+	cube.SetVao(sgl.NewUniTexCube(10))
 
 	sgl.SetBasicGlobalConfigs()
 

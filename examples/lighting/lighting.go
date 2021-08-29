@@ -21,10 +21,11 @@ func main() {
 	defer glfw.Terminate()
 
 	vp := sgl.NewViewpoint(windowWidth, windowHeight)
+	ls := sgl.NewLightSrc(0.2, 0, 0, 100, 1, 1, 1)
 
-	cube := sgl.SimpleModel{}
-	cube.SetProgram(sgl.NewSimpleVShader(), sgl.NewSimpleFShader(1, 0.5, 0.5))
-	cube.SetMatrixes(&vp)
+	cube := sgl.SimpleLightModel{}
+	cube.SetProgram(sgl.NewSimpleLightVShader(), sgl.NewSimpleLightFShader(1, 0.3, 0.3))
+	cube.SetMatrixes(&vp, &ls)
 	cube.SetVao(sgl.NewSimpleCube(10))
 
 	sgl.SetBasicGlobalConfigs()
@@ -45,7 +46,7 @@ func main() {
 		cube.Model = mgl32.HomogRotate3D(float32(angle)/5, mgl32.Vec3{1, 0, 0})
 
 		// Render
-		cube.Render(&vp)
+		cube.Render(&vp, &ls)
 		// --- Drawing ends ---
 
 		// Maintenance
