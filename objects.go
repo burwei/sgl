@@ -10,11 +10,15 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 )
 
-type Model interface {
-	SetUniforms()
-	SetVertices()
-	Render()
-}
+/*
+Object structures should have these four methods:
+	1. PrepareProgram(...): Compile the program using vShader and fShader.
+	2. SetUniforms(...): Set uniform variables in GLSL.
+	3. SetVertices(...): Set vao and vbo.
+	4. Render(...): Refresh uniform variables and draw the object.
+The parameters might be different, based on the need of each shader.
+*/
+
 
 type BasicObject struct {
 	Program      uint32
@@ -22,6 +26,39 @@ type BasicObject struct {
 	Vertices     *[]float32
 	Model        mgl32.Mat4
 	ModelUniform int32
+}
+
+func (m *BasicObject) PrepareProgram(r float32, g float32, b float32) {
+	vShader := fmt.Sprintf(
+		`
+		#version 330
+
+		uniform mat4 projection;
+		uniform mat4 camera;
+		uniform mat4 model;
+
+		layout (location = 0) in vec3 vert;
+
+		void main() {
+			gl_Position = projection * camera * model * vec4(vert, 1);
+		}
+		%v`,
+		"\x00",
+	)
+	fShader := fmt.Sprintf(
+		`
+		#version 330
+		out vec4 outputColor;
+		void main() {
+			outputColor = vec4(%.3f, %.3f, %.3f, 1.0);
+		}
+		%v`,
+		r,
+		g,
+		b,
+		"\x00",
+	)
+	m.Program = MakeProgram(vShader, fShader)
 }
 
 func (m *BasicObject) SetUniforms(vp *SimpleViewPoint) {
@@ -57,7 +94,7 @@ func (m *BasicObject) SetVertices(vertices *[]float32) {
 		gl.STATIC_DRAW,
 	)
 
-	vertAttrib := uint32(0) // 0 is the index of variable "vert" defined in GLSL
+	vertAttrib := uint32(0) // 0 is the index of variable "vert" defined in vShader
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointerWithOffset(
 		vertAttrib,
@@ -79,6 +116,8 @@ func (m *BasicObject) Render(vp *SimpleViewPoint) {
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(*m.Vertices)/3)) // 3: X,Y,Z
 }
 
+
+
 type BasicTexObject struct {
 	Program        uint32
 	Vao            uint32
@@ -87,6 +126,46 @@ type BasicTexObject struct {
 	ModelUniform   int32
 	Texture        uint32
 	TextureUniform int32
+}
+
+func (m *BasicTexObject) PrepareProgram() {
+	vShader := fmt.Sprintf(
+		`
+		#version 330
+
+		uniform mat4 projection;
+		uniform mat4 camera;
+		uniform mat4 model;
+
+		layout (location = 0) in vec3 vert;
+		layout (location = 1) in vec2 vertTexCoord;
+
+		out vec2 fragTexCoord;
+
+		void main() {
+			fragTexCoord = vertTexCoord;
+			gl_Position = projection * camera * model * vec4(vert, 1);
+		}
+		%v`,
+		"\x00",
+	)
+	fShader := fmt.Sprintf(
+		`
+		#version 330
+
+		uniform sampler2D tex;
+
+		in vec2 fragTexCoord;
+
+		out vec4 outputColor;
+
+		void main() {
+			outputColor = texture(tex, fragTexCoord);
+		}
+		%v`,
+		"\x00",
+	)
+	m.Program = MakeProgram(vShader, fShader)
 }
 
 func (m *BasicTexObject) SetUniforms(vp *SimpleViewPoint) {
@@ -125,7 +204,7 @@ func (m *BasicTexObject) SetVertices(vertices *[]float32) {
 		gl.STATIC_DRAW,
 	)
 
-	vertAttrib := uint32(0) // 0 is the index of variable "vert" defined in GLSL
+	vertAttrib := uint32(0) // 0 is the index of variable "vert" defined in vShader
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointerWithOffset(
 		vertAttrib,
@@ -136,7 +215,7 @@ func (m *BasicTexObject) SetVertices(vertices *[]float32) {
 		0,
 	)
 
-	texCoordAttrib := uint32(1) // 1 is the index of variable "vertTexCoord" defined in GLSL
+	texCoordAttrib := uint32(1) // 1 is the index of variable "vertTexCoord" defined in vShader
 	gl.EnableVertexAttribArray(texCoordAttrib)
 	gl.VertexAttribPointerWithOffset(
 		texCoordAttrib,
@@ -198,12 +277,84 @@ func (m *BasicTexObject) Render(vp *SimpleViewPoint) {
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(*m.Vertices)/5)) // 6: X,Y,Z,U,V
 }
 
+
+
 type BasicLightObject struct {
 	Program      uint32
 	Vao          uint32
 	Vertices     *[]float32
 	Model        mgl32.Mat4
 	ModelUniform int32
+}
+
+func (m *BasicLightObject) PrepareProgram(r float32, g float32, b float32) {
+	vShader := fmt.Sprintf(
+		`
+		#version 330 core
+		layout (location = 0) in vec3 aPos;
+		layout (location = 1) in vec3 aNormal;
+
+		out vec3 FragPos;
+		out vec3 Normal;
+
+		uniform mat4 projection;
+		uniform mat4 camera;
+		uniform mat4 model;
+
+		void main()
+		{
+			FragPos = vec3(model * vec4(aPos, 1.0));
+			Normal = mat3(transpose(inverse(model))) * aNormal;   
+
+			gl_Position = projection * camera * vec4(FragPos, 1.0);
+		}
+		%v`,
+		"\x00",
+	)
+	fShader := fmt.Sprintf(
+		`
+		#version 330 core
+		out vec4 FragColor;
+
+		in vec3 Normal;  
+		in vec3 FragPos;  
+		
+		uniform float ambientStrength;
+		uniform float specularStrength;
+		uniform float shininess; 
+		uniform vec3 lightPos; 
+		uniform vec3 lightColor;
+		uniform vec3 viewPos;
+
+		void main()
+		{
+			vec3 objectColor = vec3(%.3f, %.3f, %.3f);
+
+			// ambient
+			vec3 ambient = ambientStrength * lightColor;
+				
+			// diffuse 
+			vec3 norm = normalize(Normal);
+			vec3 lightDir = normalize(lightPos - FragPos);
+			float diff = max(dot(norm, lightDir), 0.0);
+			vec3 diffuse = diff * lightColor;
+				
+			// specular
+			vec3 viewDir = normalize(viewPos - FragPos);
+			vec3 reflectDir = reflect(-lightDir, norm);  
+			float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+			vec3 specular = specularStrength * spec * lightColor;  
+				
+			vec3 result = (ambient + diffuse + specular) * objectColor;
+			FragColor = vec4(result, 1.0);
+		} 
+		%v`,
+		r,
+		g,
+		b,
+		"\x00",
+	)
+	m.Program = MakeProgram(vShader, fShader)
 }
 
 func (m *BasicLightObject) SetUniforms(vp *SimpleViewPoint, ls *SimpleLightSrc) {
@@ -253,7 +404,7 @@ func (m *BasicLightObject) SetVertices(vertices *[]float32) {
 		gl.STATIC_DRAW,
 	)
 
-	vertAttrib := uint32(0) // 0 is the index of variable "aPos" defined in GLSL
+	vertAttrib := uint32(0) // 0 is the index of variable "aPos" defined in vShader
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointerWithOffset(
 		vertAttrib,
@@ -263,7 +414,7 @@ func (m *BasicLightObject) SetVertices(vertices *[]float32) {
 		6*4, // 4 is the size of float32, and there're 6 floats per vertex in the vertex array.
 		0,
 	)
-	normal := uint32(1) // 1 is the index of variable "aNormal" defined in GLSL
+	normal := uint32(1) // 1 is the index of variable "aNormal" defined in vShader
 	gl.EnableVertexAttribArray(normal)
 	gl.VertexAttribPointerWithOffset(
 		normal,

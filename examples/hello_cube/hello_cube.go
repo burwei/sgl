@@ -20,14 +20,11 @@ func main() {
 	runtime.LockOSThread()
 	window := sgl.InitGlfwAndOpenGL(width, height, title)
 	defer glfw.Terminate()
-	
+
 	vp := sgl.NewViewpoint(width, height)
 
 	cube := sgl.BasicObject{}
-	cube.Program = sgl.MakeProgram(
-		sgl.NewBasicVShader(),
-		sgl.NewBasicFShader(1, 0.3, 0.3),
-	)
+	cube.PrepareProgram(1, 0.3, 0.3)
 	cube.SetUniforms(&vp)
 	cube.SetVertices(sgl.NewCube(20))
 
@@ -36,7 +33,7 @@ func main() {
 		sgl.BeforeDrawing()
 
 		// rotate
-		cube.Model = mgl32.Rotate3DY(math.Pi/6).Mat4()
+		cube.Model = mgl32.Rotate3DY(math.Pi / 6).Mat4()
 
 		// Render
 		cube.Render(&vp)

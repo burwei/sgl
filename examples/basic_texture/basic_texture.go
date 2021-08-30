@@ -24,10 +24,7 @@ func main() {
 	vp := sgl.NewViewpoint(width, height)
 
 	cube := sgl.BasicTexObject{}
-	cube.Program = sgl.MakeProgram(
-		sgl.NewBasicTexVShader(),
-		sgl.NewBasicTexFShader(),
-	)
+	cube.PrepareProgram()
 	cube.SetUniforms(&vp)
 	cube.SetTexture("wood.png")
 	cube.SetVertices(sgl.NewUniTexCube(20))

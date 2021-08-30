@@ -23,10 +23,7 @@ func main() {
 	vp := sgl.NewViewpoint(width, height)
 
 	cube := sgl.BasicObject{}
-	cube.Program = sgl.MakeProgram(
-		sgl.NewBasicVShader(),
-		sgl.NewBasicFShader(1, 0.3, 0.3),
-	)
+	cube.PrepareProgram(1, 0.3, 0.3)
 	cube.SetUniforms(&vp)
 	cube.SetVertices(sgl.NewCube(20))
 

@@ -25,10 +25,7 @@ func main() {
 	ls := sgl.NewLightSrc()
 
 	cube := sgl.BasicLightObject{}
-	cube.Program = sgl.MakeProgram(
-		sgl.NewBasicLightVShader(),
-		sgl.NewBasicLightFShader(1, 0.3, 0.3),
-	)
+	cube.PrepareProgram(1, 0.3, 0.3)
 	cube.SetUniforms(&vp, &ls)
 	cube.SetVertices(sgl.NewCube(20))
 
