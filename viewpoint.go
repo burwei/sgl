@@ -13,7 +13,7 @@ type SimpleViewPoint struct {
 	CameraUniform     int32
 	Eye               mgl32.Vec3
 	EyePosUniform     int32
-	Center            mgl32.Vec3
+	Target            mgl32.Vec3
 	Top               mgl32.Vec3
 }
 
@@ -24,7 +24,7 @@ func NewViewpoint(width int, height int) SimpleViewPoint {
 	vp.Near = 0.1
 	vp.Far = 2000
 	vp.Eye = mgl32.Vec3{0, 0, 1000} 
-	vp.Center = mgl32.Vec3{0, 0, 0}
+	vp.Target = mgl32.Vec3{0, 0, 0}
 	vp.Top = mgl32.Vec3{0, 1, 0}
 	return vp
 }

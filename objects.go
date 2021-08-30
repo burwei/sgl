@@ -66,7 +66,7 @@ func (m *BasicObject) SetUniforms(vp *SimpleViewPoint) {
 	vp.ProjectionUniform = gl.GetUniformLocation(m.Program, gl.Str("projection\x00"))
 	gl.UniformMatrix4fv(vp.ProjectionUniform, 1, false, &vp.Projection[0])
 
-	vp.Camera = mgl32.LookAtV(vp.Eye, vp.Center, vp.Top)
+	vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
 	vp.CameraUniform = gl.GetUniformLocation(m.Program, gl.Str("camera\x00"))
 	gl.UniformMatrix4fv(vp.CameraUniform, 1, false, &vp.Camera[0])
 
@@ -173,7 +173,7 @@ func (m *BasicTexObject) SetUniforms(vp *SimpleViewPoint) {
 	vp.ProjectionUniform = gl.GetUniformLocation(m.Program, gl.Str("projection\x00"))
 	gl.UniformMatrix4fv(vp.ProjectionUniform, 1, false, &vp.Projection[0])
 
-	vp.Camera = mgl32.LookAtV(vp.Eye, vp.Center, vp.Top)
+	vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
 	vp.CameraUniform = gl.GetUniformLocation(m.Program, gl.Str("camera\x00"))
 	gl.UniformMatrix4fv(vp.CameraUniform, 1, false, &vp.Camera[0])
 
@@ -362,7 +362,7 @@ func (m *BasicLightObject) SetUniforms(vp *SimpleViewPoint, ls *SimpleLightSrc) 
 	vp.ProjectionUniform = gl.GetUniformLocation(m.Program, gl.Str("projection\x00"))
 	gl.UniformMatrix4fv(vp.ProjectionUniform, 1, false, &vp.Projection[0])
 
-	vp.Camera = mgl32.LookAtV(vp.Eye, vp.Center, vp.Top)
+	vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
 	vp.CameraUniform = gl.GetUniformLocation(m.Program, gl.Str("camera\x00"))
 	gl.UniformMatrix4fv(vp.CameraUniform, 1, false, &vp.Camera[0])
 

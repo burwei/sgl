@@ -31,7 +31,7 @@ func main() {
 	previousTime := glfw.GetTime()
 	rotateY := mgl32.Rotate3DY(-math.Pi / 6).Mat4()
 
-	sgl.BeforeMainLoop()
+	sgl.BeforeMainLoop(window, &vp)
 	for !window.ShouldClose() {
 		sgl.BeforeDrawing()
 

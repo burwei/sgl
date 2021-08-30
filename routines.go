@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/go-gl/mathgl/mgl32"
 )
 
 func InitGlfwAndOpenGL(width int, height int, title string) *glfw.Window {
@@ -92,10 +93,44 @@ func MakeProgram(vertexShaderSource, fragmentShaderSource string) uint32 {
 	return program
 }
 
-func BeforeMainLoop() {
+func BeforeMainLoop(window *glfw.Window, vp *SimpleViewPoint) {
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
+	keyCallback := glfw.KeyCallback(func(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+		switch key {
+		case glfw.KeyUp:
+			vp.Eye = mgl32.Vec3{vp.Eye[0], vp.Eye[1] + 10, vp.Eye[2]}
+			vp.Target = mgl32.Vec3{vp.Target[0], vp.Target[1] + 10, vp.Target[2]}
+			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
+		case glfw.KeyDown:
+			vp.Eye = mgl32.Vec3{vp.Eye[0], vp.Eye[1] - 10, vp.Eye[2]}
+			vp.Target = mgl32.Vec3{vp.Target[0], vp.Target[1] - 10, vp.Target[2]}
+			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
+		case glfw.KeyLeft:
+			vp.Eye = mgl32.Vec3{vp.Eye[0] - 10, vp.Eye[1], vp.Eye[2]}
+			vp.Target = mgl32.Vec3{vp.Target[0] - 10, vp.Target[1], vp.Target[2]}
+			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
+		case glfw.KeyRight:
+			vp.Eye = mgl32.Vec3{vp.Eye[0] + 10, vp.Eye[1], vp.Eye[2]}
+			vp.Target = mgl32.Vec3{vp.Target[0] + 10, vp.Target[1], vp.Target[2]}
+			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
+		case glfw.KeyO:
+			vp.Eye = mgl32.Vec3{0, 0, 1000}
+			vp.Target = mgl32.Vec3{0, 0, 0}
+			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
+		case glfw.KeyEscape:
+			window.SetShouldClose(true)
+		}
+	})
+	scrollCallback := glfw.ScrollCallback(func(w *glfw.Window, xpos, ypos float64) {
+		forwardVec := vp.Target.Sub(vp.Eye)
+		vp.Eye = mgl32.Vec3{vp.Eye[0] + forwardVec[0]*float32(ypos)*0.01, vp.Eye[1] + forwardVec[1]*float32(ypos)*0.01, vp.Eye[2] + forwardVec[2]*float32(ypos)*0.01}
+		vp.Target = mgl32.Vec3{vp.Target[0] - float32(xpos), vp.Target[1], vp.Target[2]}
+		vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
+	})
+	window.SetKeyCallback(keyCallback)
+	window.SetScrollCallback(scrollCallback)
 }
 
 func BeforeDrawing() {
