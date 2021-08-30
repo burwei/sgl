@@ -22,10 +22,6 @@ type BasicObject struct {
 	Vertices     *[]float32
 	Model        mgl32.Mat4
 	ModelUniform int32
-	X float32
-	Y float32
-	Z float32
-
 }
 
 func (m *BasicObject) SetUniforms(vp *SimpleViewPoint) {

@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "image/png"
+	"math"
 	"runtime"
 
 	sgl "github.com/burwei/simplegl"
@@ -21,7 +22,7 @@ func main() {
 	defer glfw.Terminate()
 
 	vp := sgl.NewViewpoint(width, height)
-	ls := sgl.NewLightSrc(0.3, 1, 8, 0, 0, 20, 1, 1, 1)
+	ls := sgl.NewLightSrc()
 
 	cube := sgl.BasicLightObject{}
 	cube.Program = sgl.MakeProgram(
@@ -33,6 +34,7 @@ func main() {
 
 	angle := 0.0
 	previousTime := glfw.GetTime()
+	rotateY := mgl32.Rotate3DY(-math.Pi / 6).Mat4()
 
 	sgl.BeforeMainLoop()
 	for !window.ShouldClose() {
@@ -43,7 +45,9 @@ func main() {
 		elapsed := time - previousTime
 		previousTime = time
 		angle += elapsed
-		cube.Model = mgl32.HomogRotate3D(float32(angle)/5, mgl32.Vec3{1, 0, 0})
+		cube.Model = rotateY.Mul4(
+			mgl32.HomogRotate3D(float32(angle)/5, mgl32.Vec3{1, 0, 0}),
+		)
 
 		// Render
 		cube.Render(&vp, &ls)

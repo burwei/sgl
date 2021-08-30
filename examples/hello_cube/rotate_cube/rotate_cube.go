@@ -20,17 +20,15 @@ func main() {
 	runtime.LockOSThread()
 	window := sgl.InitGlfwAndOpenGL(width, height, title)
 	defer glfw.Terminate()
-
 	vp := sgl.NewViewpoint(width, height)
 
-	cube := sgl.BasicTexObject{}
+	cube := sgl.BasicObject{}
 	cube.Program = sgl.MakeProgram(
-		sgl.NewBasicTexVShader(),
-		sgl.NewBasicTexFShader(),
+		sgl.NewBasicVShader(),
+		sgl.NewBasicFShader(1, 0.3, 0.3),
 	)
 	cube.SetUniforms(&vp)
-	cube.SetTexture("wood.png")
-	cube.SetVertices(sgl.NewUniTexCube(20))
+	cube.SetVertices(sgl.NewCube(20))
 
 	angle := 0.0
 	previousTime := glfw.GetTime()
