@@ -7,7 +7,7 @@ import (
 // This file contains several simple GLSL code
 // to provides some simple vertex shaders and fragment shaders.
 
-func NewSimpleVShader() string {
+func NewBasicVShader() string {
 	return fmt.Sprintf(
 		`
 		#version 330
@@ -26,7 +26,7 @@ func NewSimpleVShader() string {
 	)
 }
 
-func NewSimpleFShader(r float32, g float32, b float32) string {
+func NewBasicFShader(r float32, g float32, b float32) string {
 	return fmt.Sprintf(
 		`
 		#version 330
@@ -42,7 +42,7 @@ func NewSimpleFShader(r float32, g float32, b float32) string {
 	)
 }
 
-func NewTexVShader() string {
+func NewBasicTexVShader() string {
 	return fmt.Sprintf(
 		`
 		#version 330
@@ -65,7 +65,7 @@ func NewTexVShader() string {
 	)
 }
 
-func NewTexFShader() string{
+func NewBasicTexFShader() string {
 	return fmt.Sprintf(
 		`
 		#version 330
@@ -84,8 +84,8 @@ func NewTexFShader() string{
 	)
 }
 
-func NewSimpleLightVShader() string {
-	// Todo: avoid inverse calculation 
+func NewBasicLightVShader() string {
+	// Todo: avoid inverse calculation
 	return fmt.Sprintf(
 		`
 		#version 330 core
@@ -111,7 +111,7 @@ func NewSimpleLightVShader() string {
 	)
 }
 
-func NewSimpleLightFShader(r float32, g float32, b float32) string {
+func NewBasicLightFShader(r float32, g float32, b float32) string {
 	return fmt.Sprintf(
 		`
 		#version 330 core

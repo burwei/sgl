@@ -1,7 +1,7 @@
 package simplegl
 
 // NewSimpleCube will return vertices of a cube with side length l.
-func NewSimpleCube(l float32) *[]float32{
+func NewCube(l float32) *[]float32{
 	return &[]float32{
 		//  X, Y, Z, U, V
 		// Bottom (-Y)

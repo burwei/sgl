@@ -21,13 +21,14 @@ func main() {
 	defer glfw.Terminate()
 
 	vp := sgl.NewViewpoint(width, height)
+	ls := sgl.NewLightSrc(0.3, 1, 8, 0, 0, 20, 1, 1, 1)
 
-	cube := sgl.BasicObject{}
+	cube := sgl.BasicLightObject{}
 	cube.Program = sgl.MakeProgram(
-		sgl.NewBasicVShader(),
-		sgl.NewBasicFShader(1, 0.3, 0.3),
+		sgl.NewBasicLightVShader(),
+		sgl.NewBasicLightFShader(1, 0.3, 0.3),
 	)
-	cube.SetUniforms(&vp)
+	cube.SetUniforms(&vp, &ls)
 	cube.SetVertices(sgl.NewCube(20))
 
 	angle := 0.0
@@ -45,7 +46,7 @@ func main() {
 		cube.Model = mgl32.HomogRotate3D(float32(angle)/5, mgl32.Vec3{1, 0, 0})
 
 		// Render
-		cube.Render(&vp)
+		cube.Render(&vp, &ls)
 
 		sgl.AfterDrawing(window)
 	}

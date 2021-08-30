@@ -22,13 +22,14 @@ func main() {
 
 	vp := sgl.NewViewpoint(width, height)
 
-	cube := sgl.BasicObject{}
+	cube := sgl.BasicTexObject{}
 	cube.Program = sgl.MakeProgram(
-		sgl.NewBasicVShader(),
-		sgl.NewBasicFShader(1, 0.3, 0.3),
+		sgl.NewBasicTexVShader(),
+		sgl.NewBasicTexFShader(),
 	)
 	cube.SetUniforms(&vp)
-	cube.SetVertices(sgl.NewCube(20))
+	cube.SetTexture("wood.png")
+	cube.SetVertices(sgl.NewUniTexCube(20))
 
 	angle := 0.0
 	previousTime := glfw.GetTime()
