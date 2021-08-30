@@ -20,7 +20,7 @@ func NewLightSrc() SimpleLightSrc {
 	ls.AmbientStrength = 0.3
 	ls.SpecularStrength = 1
 	ls.Shininess = 8
-	ls.Pos = mgl32.Vec3{-50, 0, 100}
+	ls.Pos = mgl32.Vec3{-500, 0, 1000}
 	ls.Color = mgl32.Vec3{1, 1, 1}
 	return ls
 }

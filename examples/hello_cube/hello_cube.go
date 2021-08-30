@@ -26,7 +26,7 @@ func main() {
 	cube := sgl.BasicObject{}
 	cube.PrepareProgram(1, 0.3, 0.3)
 	cube.SetUniforms(&vp)
-	cube.SetVertices(sgl.NewCube(20))
+	cube.SetVertices(sgl.NewCube(200))
 
 	sgl.BeforeMainLoop()
 	for !window.ShouldClose() {

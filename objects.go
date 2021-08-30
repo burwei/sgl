@@ -427,6 +427,46 @@ func (m *BasicLightObject) SetVertices(vertices *[]float32) {
 	m.Vao = vao
 }
 
+func (m *BasicLightObject) SetVerticesWithNormals(vertices *[]float32) {
+	m.Vertices = vertices
+
+	var vao uint32
+	gl.GenVertexArrays(1, &vao)
+	gl.BindVertexArray(vao)
+
+	var vbo uint32
+	gl.GenBuffers(1, &vbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	gl.BufferData(
+		gl.ARRAY_BUFFER,
+		len(*m.Vertices)*4, // 4 is the size of float32
+		gl.Ptr(*m.Vertices),
+		gl.STATIC_DRAW,
+	)
+
+	vertAttrib := uint32(0) // 0 is the index of variable "aPos" defined in vShader
+	gl.EnableVertexAttribArray(vertAttrib)
+	gl.VertexAttribPointerWithOffset(
+		vertAttrib,
+		3,
+		gl.FLOAT,
+		false,
+		6*4, // 4 is the size of float32, and there're 6 floats per vertex in the vertex array.
+		0,
+	)
+	normal := uint32(1) // 1 is the index of variable "aNormal" defined in vShader
+	gl.EnableVertexAttribArray(normal)
+	gl.VertexAttribPointerWithOffset(
+		normal,
+		3,
+		gl.FLOAT,
+		false,
+		6*4, // 4 is the size of float32, and there're 3 floats per vertex in the vertex array.
+		3*4, // use offset 3*4 because we use only last 3 floats of each vertex here.
+	)
+	m.Vao = vao
+}
+
 func (m *BasicLightObject) Render(vp *SimpleViewPoint, ls *SimpleLightSrc) {
 	gl.UseProgram(m.Program)
 	gl.UniformMatrix4fv(vp.ProjectionUniform, 1, false, &vp.Projection[0])

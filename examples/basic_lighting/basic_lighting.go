@@ -27,7 +27,7 @@ func main() {
 	cube := sgl.BasicLightObject{}
 	cube.PrepareProgram(1, 0.3, 0.3)
 	cube.SetUniforms(&vp, &ls)
-	cube.SetVertices(sgl.NewCube(20))
+	cube.SetVertices(sgl.NewCube(200))
 
 	angle := 0.0
 	previousTime := glfw.GetTime()

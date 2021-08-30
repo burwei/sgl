@@ -27,7 +27,7 @@ func main() {
 	cube.PrepareProgram()
 	cube.SetUniforms(&vp)
 	cube.SetTexture("wood.png")
-	cube.SetVertices(sgl.NewUniTexCube(20))
+	cube.SetVertices(sgl.NewUniTexCube(200))
 
 	angle := 0.0
 	previousTime := glfw.GetTime()
