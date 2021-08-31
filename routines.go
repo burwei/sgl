@@ -124,9 +124,21 @@ func BeforeMainLoop(window *glfw.Window, vp *SimpleViewPoint) {
 		}
 	})
 	scrollCallback := glfw.ScrollCallback(func(w *glfw.Window, xpos, ypos float64) {
-		forwardVec := vp.Target.Sub(vp.Eye)
-		vp.Eye = mgl32.Vec3{vp.Eye[0] + forwardVec[0]*float32(ypos)*0.01, vp.Eye[1] + forwardVec[1]*float32(ypos)*0.01, vp.Eye[2] + forwardVec[2]*float32(ypos)*0.01}
-		vp.Target = mgl32.Vec3{vp.Target[0] - float32(xpos), vp.Target[1], vp.Target[2]}
+		forwardVec := vp.Target.Sub(vp.Eye).Mul(0.005)
+		leftVec := vp.Top.Cross(forwardVec).Mul(2)
+		forwardX := forwardVec[0]*float32(ypos)
+		forwardY := forwardVec[1]*float32(ypos)
+		forwardZ := forwardVec[2]*float32(ypos)
+		vp.Eye = mgl32.Vec3{
+			vp.Eye[0] + forwardX, 
+			vp.Eye[1] + forwardY, 
+			vp.Eye[2] + forwardZ,
+		}
+		vp.Target = mgl32.Vec3{
+			vp.Target[0] + float32(xpos)*leftVec[0] + forwardX, 
+			vp.Target[1] + float32(xpos)*leftVec[1] + forwardY, 
+			vp.Target[2] + float32(xpos)*leftVec[2] + forwardZ,
+		}
 		vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
 	})
 	window.SetKeyCallback(keyCallback)
