@@ -26,7 +26,7 @@ func main() {
 
 	// free stl source: https://cults3d.com/en/3d-model/game/iron-man-bust_by-max7th-kimjh
 	stlVertices := sgl.ReadBinaryStlFile("ironman_bust_max7th_bin.stl", 0, 10000)
-	stl := sgl.BasicLightObject{}
+	stl := sgl.BasicObject{}
 	stl.PrepareProgram(1, 0.3, 0.3)
 	stl.SetUniforms(&vp, &ls)
 	stl.SetVertices(&stlVertices)
@@ -49,7 +49,7 @@ func main() {
 		)
 
 		// Render
-		stl.Render(&vp, &ls)
+		stl.Render()
 
 		sgl.AfterDrawing(window)
 	}

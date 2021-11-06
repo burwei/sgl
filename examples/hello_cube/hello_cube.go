@@ -20,23 +20,32 @@ func main() {
 	runtime.LockOSThread()
 	window := sgl.InitGlfwAndOpenGL(width, height, title)
 	defer glfw.Terminate()
-
 	vp := sgl.NewViewpoint(width, height)
 
-	cube := sgl.BasicObject{}
+	cube := sgl.BasicNoLightObject{}
 	cube.PrepareProgram(1, 0.3, 0.3)
 	cube.SetUniforms(&vp)
 	cube.SetVertices(sgl.NewCube(200))
+
+	angle := 0.0
+	previousTime := glfw.GetTime()
+	rotateY := mgl32.Rotate3DY(-math.Pi / 6).Mat4()
 
 	sgl.BeforeMainLoop(window, &vp)
 	for !window.ShouldClose() {
 		sgl.BeforeDrawing()
 
-		// rotate
-		cube.Model = mgl32.Rotate3DY(math.Pi / 6).Mat4()
+		// make the cube rotate
+		time := glfw.GetTime()
+		elapsed := time - previousTime
+		previousTime = time
+		angle += elapsed
+		cube.Model = rotateY.Mul4(
+			mgl32.HomogRotate3D(float32(angle)/5, mgl32.Vec3{1, 0, 0}),
+		)
 
 		// Render
-		cube.Render(&vp)
+		cube.Render()
 
 		sgl.AfterDrawing(window)
 	}

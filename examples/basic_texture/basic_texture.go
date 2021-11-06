@@ -47,7 +47,7 @@ func main() {
 		)
 
 		// Render
-		cube.Render(&vp)
+		cube.Render()
 
 		sgl.AfterDrawing(window)
 	}

@@ -24,7 +24,7 @@ func main() {
 	vp := sgl.NewViewpoint(width, height)
 	ls := sgl.NewLightSrc()
 
-	cube := sgl.BasicLightObject{}
+	cube := sgl.BasicObject{}
 	cube.PrepareProgram(1, 0.3, 0.3)
 	cube.SetUniforms(&vp, &ls)
 	cube.SetVertices(sgl.NewCube(200))
@@ -47,7 +47,7 @@ func main() {
 		)
 
 		// Render
-		cube.Render(&vp, &ls)
+		cube.Render()
 
 		sgl.AfterDrawing(window)
 	}

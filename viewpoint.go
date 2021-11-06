@@ -26,5 +26,7 @@ func NewViewpoint(width int, height int) SimpleViewPoint {
 	vp.Eye = mgl32.Vec3{0, 0, 1000} 
 	vp.Target = mgl32.Vec3{0, 0, 0}
 	vp.Top = mgl32.Vec3{0, 1, 0}
+	vp.Projection = mgl32.Perspective(vp.Fovy, vp.Aspect, vp.Near, vp.Far)
+	vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
 	return vp
 }
