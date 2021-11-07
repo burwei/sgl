@@ -76,8 +76,8 @@ func main() {
 	}
 }
 ```
-result:
-<img src="https://imgur.com/a/HlPT0cW" width="40%">
+result:  
+<img src="https://imgur.com/a/HlPT0cW.gif" width="40%">
 
 
 ## Examples
