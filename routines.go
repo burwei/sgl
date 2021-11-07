@@ -3,12 +3,23 @@ package simplegl
 import (
 	"fmt"
 	"log"
+	"runtime"
 	"strings"
 
 	"github.com/go-gl/gl/all-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 )
+
+func Init(windowWidth int, windowHeight int, windowTitle string) *glfw.Window{
+	runtime.LockOSThread()
+	window := InitGlfwAndOpenGL(windowWidth, windowHeight, windowTitle)
+	return window
+}
+
+func Terminate(){
+	glfw.Terminate()
+}
 
 func InitGlfwAndOpenGL(width int, height int, title string) *glfw.Window {
 	// init GLFW
@@ -98,6 +109,10 @@ func BeforeMainLoop(window *glfw.Window, vp *SimpleViewPoint) {
 	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
 	keyCallback := glfw.KeyCallback(func(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+		// capture only Press and Repeat actions
+		if action == glfw.Release{
+			return
+		}
 		switch key {
 		case glfw.KeyUp:
 			vp.Eye = mgl32.Vec3{vp.Eye[0], vp.Eye[1] + 10, vp.Eye[2]}

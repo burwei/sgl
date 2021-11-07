@@ -10,40 +10,55 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 )
 
-
-type Uniforms map[string]int32
-
 type Object interface {
-	// Compile the program using vShader and fShader.
-	// The parameters might not be the same for different objects
-	// PrepareProgram(...)
-	
-	// Set uniform variables in GLSL.
-	// The parameters might not be the same for different objects
-	// SetUniforms(...)
-	
-	// Set vao and vbo. 
-	// The parameters might not be the same for different objects
-	// SetVertices(...)
-	
-	// Refresh uniform variables and draw the object.
+	// SetProgramVar sets the program's constant and uniform variables.
+	SetProgramVar(interface{})
+
+	// PrepareProgram prepares shader program and uniform variables.
+	PrepareProgram()
+
+	// SetVertices sets vao and vbo.
+	SetVertices(*[]float32)
+
+	// GetModel gets the model of the object.
+	GetModel() mgl32.Mat4
+
+	// SetModel sets the model of the object.
+	SetModel(mgl32.Mat4)
+
+	// Render refreshs uniform variables and draw the object.
 	// All references of the variables that would change the
-	// object's states in the main loop should already have been 
-	// stored in SetUniforms(), so that we won't do extra work here 
-	// to get the best performance.
+	// object's states in the main loop (i.e. uniform variables)
+	// should have already been prepared when calling SetProgramVar(),
+	// thus we won't do any extra work here to get the best performance.
 	Render()
 }
 
-type BasicNoLightObject struct {
-	Program  uint32
-	Vao      uint32
-	Vertices *[]float32
-	Model    mgl32.Mat4
-	Uni      *Uniforms
-	Vp       *SimpleViewPoint
+type BasicNoLightObj struct {
+	program  uint32
+	vao      uint32
+	vertices *[]float32
+	model    mgl32.Mat4
+	uni      map[string]int32
+	progVar  BasicNoLightObjProgVar
 }
 
-func (m *BasicNoLightObject) PrepareProgram(r float32, g float32, b float32) {
+type BasicNoLightObjProgVar struct {
+	Red   float32
+	Green float32
+	Blue  float32
+	Vp    *SimpleViewPoint
+}
+
+func (obj *BasicNoLightObj) SetProgramVar(progVar interface{}) {
+	if pv, ok := progVar.(BasicNoLightObjProgVar); ok {
+		obj.progVar = pv
+	} else {
+		panic("progVar is not a BasicNoLightObjProgVar")
+	}
+}
+
+func (obj *BasicNoLightObj) PrepareProgram() {
 	vShader := fmt.Sprintf(
 		`
 		#version 330
@@ -64,38 +79,34 @@ func (m *BasicNoLightObject) PrepareProgram(r float32, g float32, b float32) {
 		`
 		#version 330
 		out vec4 outputColor;
+		uniform float red;
+		uniform float green;
+		uniform float blue;
 		void main() {
-			outputColor = vec4(%.3f, %.3f, %.3f, 1.0);
+			outputColor = vec4(red, green, blue, 1.0);
 		}
 		%v`,
-		r,
-		g,
-		b,
 		"\x00",
 	)
-	m.Program = MakeProgram(vShader, fShader)
+	obj.program = MakeProgram(vShader, fShader)
+
+	obj.model = mgl32.Ident4()
+	obj.uni = map[string]int32{}
+	obj.uni["project"] = gl.GetUniformLocation(obj.program, gl.Str("projection\x00"))
+	obj.uni["camera"] = gl.GetUniformLocation(obj.program, gl.Str("camera\x00"))
+	obj.uni["model"] = gl.GetUniformLocation(obj.program, gl.Str("model\x00"))
+	obj.uni["red"] = gl.GetUniformLocation(obj.program, gl.Str("red\x00"))
+	obj.uni["green"] = gl.GetUniformLocation(obj.program, gl.Str("green\x00"))
+	obj.uni["blue"] = gl.GetUniformLocation(obj.program, gl.Str("blue\x00"))
+
+	gl.UniformMatrix4fv(obj.uni["project"], 1, false, &(obj.progVar.Vp.Projection[0]))
+	gl.UniformMatrix4fv(obj.uni["camera"], 1, false, &(obj.progVar.Vp.Camera[0]))
+	gl.UniformMatrix4fv(obj.uni["model"], 1, false, &obj.model[0])
+	gl.BindFragDataLocation(obj.program, 0, gl.Str("outputColor\x00"))
 }
 
-func (m *BasicNoLightObject) SetUniforms(vp *SimpleViewPoint) {
-	m.Uni = &Uniforms{}
-	m.Vp = vp
-
-	(*m.Uni)["project"] = gl.GetUniformLocation(m.Program, gl.Str("projection\x00"))
-	gl.UniformMatrix4fv((*m.Uni)["project"], 1, false, &(m.Vp.Projection[0]))
-
-	vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
-	(*m.Uni)["camera"] = gl.GetUniformLocation(m.Program, gl.Str("camera\x00"))
-	gl.UniformMatrix4fv((*m.Uni)["camera"], 1, false, &(m.Vp.Camera[0]))
-
-	m.Model = mgl32.Ident4()
-	(*m.Uni)["model"] = gl.GetUniformLocation(m.Program, gl.Str("model\x00"))
-	gl.UniformMatrix4fv((*m.Uni)["model"], 1, false, &m.Model[0])
-
-	gl.BindFragDataLocation(m.Program, 0, gl.Str("outputColor\x00"))
-}
-
-func (m *BasicNoLightObject) SetVertices(vertices *[]float32) {
-	m.Vertices = vertices
+func (obj *BasicNoLightObj) SetVertices(vertices *[]float32) {
+	obj.vertices = vertices
 
 	var vao uint32
 	gl.GenVertexArrays(1, &vao)
@@ -121,29 +132,55 @@ func (m *BasicNoLightObject) SetVertices(vertices *[]float32) {
 		3*4, // 4 is the size of float32, and there're 5 floats per vertex in the vertex array.
 		0,
 	)
-	m.Vao = vao
+	obj.vao = vao
 }
 
-func (m *BasicNoLightObject) Render() {
-	gl.UseProgram(m.Program)
-	gl.UniformMatrix4fv((*m.Uni)["project"], 1, false, &(m.Vp.Projection[0]))
-	gl.UniformMatrix4fv((*m.Uni)["camera"], 1, false, &(m.Vp.Camera[0]))
-	gl.UniformMatrix4fv((*m.Uni)["model"], 1, false, &m.Model[0])
-	gl.BindVertexArray(m.Vao)
-	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(*m.Vertices)/3)) // 3: X,Y,Z
+func (obj *BasicNoLightObj) GetModel() mgl32.Mat4 {
+	return obj.model
 }
 
-type BasicObject struct {
-	Program  uint32
-	Vao      uint32
-	Vertices *[]float32
-	Model    mgl32.Mat4
-	Uni      *Uniforms
-	Vp       *SimpleViewPoint
-	Ls       *SimpleLightSrc
+func (obj *BasicNoLightObj) SetModel(newModel mgl32.Mat4) {
+	obj.model = newModel
 }
 
-func (m *BasicObject) PrepareProgram(r float32, g float32, b float32) {
+func (obj *BasicNoLightObj) Render() {
+	gl.UseProgram(obj.program)
+	gl.UniformMatrix4fv(obj.uni["project"], 1, false, &(obj.progVar.Vp.Projection[0]))
+	gl.UniformMatrix4fv(obj.uni["camera"], 1, false, &(obj.progVar.Vp.Camera[0]))
+	gl.UniformMatrix4fv(obj.uni["model"], 1, false, &obj.model[0])
+	gl.Uniform1f(obj.uni["red"], obj.progVar.Red)
+	gl.Uniform1f(obj.uni["green"], obj.progVar.Green)
+	gl.Uniform1f(obj.uni["blue"], obj.progVar.Blue)
+	gl.BindVertexArray(obj.vao)
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(*obj.vertices)/3)) // 3: X,Y,Z
+}
+
+type BasicObj struct {
+	program  uint32
+	vao      uint32
+	vertices *[]float32
+	model    mgl32.Mat4
+	uni      map[string]int32
+	progVar  BasicObjProgVar
+}
+
+type BasicObjProgVar struct {
+	Red   float32
+	Green float32
+	Blue  float32
+	Vp    *SimpleViewPoint
+	Ls    *SimpleLightSrc
+}
+
+func (obj *BasicObj) SetProgramVar(progVar interface{}) {
+	if pv, ok := progVar.(BasicObjProgVar); ok {
+		obj.progVar = pv
+	} else {
+		panic("progVar is not a BasicObjProgVar")
+	}
+}
+
+func (obj *BasicObj) PrepareProgram() {
 	vShader := fmt.Sprintf(
 		`
 		#version 330 core
@@ -175,6 +212,9 @@ func (m *BasicObject) PrepareProgram(r float32, g float32, b float32) {
 		in vec3 Normal;  
 		in vec3 FragPos;  
 		
+		uniform float red;
+		uniform float green;
+		uniform float blue;
 		uniform float ambientStrength;
 		uniform float specularStrength;
 		uniform float shininess; 
@@ -184,7 +224,7 @@ func (m *BasicObject) PrepareProgram(r float32, g float32, b float32) {
 
 		void main()
 		{
-			vec3 objectColor = vec3(%.3f, %.3f, %.3f);
+			vec3 objectColor = vec3(red, green, blue);
 
 			// ambient
 			vec3 ambient = ambientStrength * lightColor;
@@ -205,48 +245,43 @@ func (m *BasicObject) PrepareProgram(r float32, g float32, b float32) {
 			FragColor = vec4(result, 1.0);
 		} 
 		%v`,
-		r,
-		g,
-		b,
 		"\x00",
 	)
-	m.Program = MakeProgram(vShader, fShader)
+	obj.program = MakeProgram(vShader, fShader)
+
+	obj.model = mgl32.Ident4()
+	obj.uni = map[string]int32{}
+	obj.uni["project"] = gl.GetUniformLocation(obj.program, gl.Str("projection\x00"))
+	obj.uni["camera"] = gl.GetUniformLocation(obj.program, gl.Str("camera\x00"))
+	obj.uni["model"] = gl.GetUniformLocation(obj.program, gl.Str("model\x00"))
+	obj.uni["lightPos"] = gl.GetUniformLocation(obj.program, gl.Str("lightPos\x00"))
+	obj.uni["lightColor"] = gl.GetUniformLocation(obj.program, gl.Str("lightColor\x00"))
+	obj.uni["viewPos"] = gl.GetUniformLocation(obj.program, gl.Str("viewPos\x00"))
+	obj.uni["red"] = gl.GetUniformLocation(obj.program, gl.Str("red\x00"))
+	obj.uni["green"] = gl.GetUniformLocation(obj.program, gl.Str("green\x00"))
+	obj.uni["blue"] = gl.GetUniformLocation(obj.program, gl.Str("blue\x00"))
+	obj.uni["ambientStrength"] = gl.GetUniformLocation(obj.program, gl.Str("ambientStrength\x00"))
+	obj.uni["specularStrength"] = gl.GetUniformLocation(obj.program, gl.Str("specularStrength\x00"))
+	obj.uni["shininess"] = gl.GetUniformLocation(obj.program, gl.Str("shininess\x00"))
+
+	gl.UniformMatrix4fv(obj.uni["project"], 1, false, &(obj.progVar.Vp.Projection[0]))
+	gl.UniformMatrix4fv(obj.uni["camera"], 1, false, &(obj.progVar.Vp.Camera[0]))
+	gl.UniformMatrix4fv(obj.uni["model"], 1, false, &obj.model[0])
+	gl.Uniform3fv(obj.uni["lightPos"], 1, &(obj.progVar.Ls.Pos[0]))
+	gl.Uniform3fv(obj.uni["lightColor"], 1, &(obj.progVar.Ls.Color[0]))
+	gl.Uniform3fv(obj.uni["viewPos"], 1, &(obj.progVar.Vp.Eye[0]))
+	gl.Uniform1f(obj.uni["red"], obj.progVar.Red)
+	gl.Uniform1f(obj.uni["green"], obj.progVar.Green)
+	gl.Uniform1f(obj.uni["blue"], obj.progVar.Blue)
+	gl.Uniform1f(obj.uni["ambientStrength"], obj.progVar.Ls.AmbientStrength)
+	gl.Uniform1f(obj.uni["specularStrength"], obj.progVar.Ls.SpecularStrength)
+	gl.Uniform1f(obj.uni["shininess"], obj.progVar.Ls.Shininess)
+	gl.BindFragDataLocation(obj.program, 0, gl.Str("outputColor\x00"))
 }
 
-func (m *BasicObject) SetUniforms(vp *SimpleViewPoint, ls *SimpleLightSrc) {
-	m.Uni = &Uniforms{}
-	m.Vp = vp
-	m.Ls = ls
-
-	(*m.Uni)["project"] = gl.GetUniformLocation(m.Program, gl.Str("projection\x00"))
-	gl.UniformMatrix4fv((*m.Uni)["project"], 1, false, &(m.Vp.Projection[0]))
-
-	(*m.Uni)["camera"] = gl.GetUniformLocation(m.Program, gl.Str("camera\x00"))
-	gl.UniformMatrix4fv((*m.Uni)["camera"], 1, false, &(m.Vp.Camera[0]))
-
-	m.Model = mgl32.Ident4()
-	(*m.Uni)["model"] = gl.GetUniformLocation(m.Program, gl.Str("model\x00"))
-	gl.UniformMatrix4fv((*m.Uni)["model"], 1, false, &m.Model[0])
-
-	(*m.Uni)["lightPos"] = gl.GetUniformLocation(m.Program, gl.Str("lightPos\x00"))
-	gl.Uniform3fv((*m.Uni)["lightPos"], 1, &(m.Ls.Pos[0]))
-	(*m.Uni)["lightColor"] = gl.GetUniformLocation(m.Program, gl.Str("lightColor\x00"))
-	gl.Uniform3fv((*m.Uni)["lightColor"], 1, &(m.Ls.Color[0]))
-	(*m.Uni)["viewPos"] = gl.GetUniformLocation(m.Program, gl.Str("viewPos\x00"))
-	gl.Uniform3fv((*m.Uni)["viewPos"], 1, &(m.Vp.Eye[0]))
-	(*m.Uni)["ambientStrength"] = gl.GetUniformLocation(m.Program, gl.Str("ambientStrength\x00"))
-	gl.Uniform1f((*m.Uni)["ambientStrength"], m.Ls.AmbientStrength)
-	(*m.Uni)["specularStrength"] = gl.GetUniformLocation(m.Program, gl.Str("specularStrength\x00"))
-	gl.Uniform1f((*m.Uni)["specularStrength"], m.Ls.SpecularStrength)
-	(*m.Uni)["shininess"] = gl.GetUniformLocation(m.Program, gl.Str("shininess\x00"))
-	gl.Uniform1f((*m.Uni)["shininess"], m.Ls.Shininess)
-
-	gl.BindFragDataLocation(m.Program, 0, gl.Str("outputColor\x00"))
-}
-
-func (m *BasicObject) SetVertices(vertices *[]float32) {
-	newVertices := m.addNormal(*vertices)
-	m.Vertices = &newVertices
+func (obj *BasicObj) SetVertices(vertices *[]float32) {
+	newVertices := obj.addNormal(*vertices)
+	obj.vertices = &newVertices
 
 	var vao uint32
 	gl.GenVertexArrays(1, &vao)
@@ -257,8 +292,8 @@ func (m *BasicObject) SetVertices(vertices *[]float32) {
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(
 		gl.ARRAY_BUFFER,
-		len(*m.Vertices)*4, // 4 is the size of float32
-		gl.Ptr(*m.Vertices),
+		len(*obj.vertices)*4, // 4 is the size of float32
+		gl.Ptr(*obj.vertices),
 		gl.STATIC_DRAW,
 	)
 
@@ -282,25 +317,36 @@ func (m *BasicObject) SetVertices(vertices *[]float32) {
 		6*4, // 4 is the size of float32, and there're 3 floats per vertex in the vertex array.
 		3*4, // use offset 3*4 because we use only last 3 floats of each vertex here.
 	)
-	m.Vao = vao
+	obj.vao = vao
 }
 
-func (m *BasicObject) Render() {
-	gl.UseProgram(m.Program)
-	gl.UniformMatrix4fv((*m.Uni)["project"], 1, false, &(m.Vp.Projection[0]))
-	gl.UniformMatrix4fv((*m.Uni)["camera"], 1, false, &(m.Vp.Camera[0]))
-	gl.UniformMatrix4fv((*m.Uni)["model"], 1, false, &m.Model[0])
-	gl.UniformMatrix3fv((*m.Uni)["lightPos"], 1, false, &(m.Ls.Pos[0]))
-	gl.UniformMatrix3fv((*m.Uni)["lightColor"], 1, false, &(m.Ls.Color[0]))
-	gl.UniformMatrix3fv((*m.Uni)["viewPos"], 1, false, &(m.Vp.Eye[0]))
-	gl.Uniform1f((*m.Uni)["ambientStrength"], m.Ls.AmbientStrength)
-	gl.Uniform1f((*m.Uni)["specularStrength"], m.Ls.SpecularStrength)
-	gl.Uniform1f((*m.Uni)["shininess"], m.Ls.Shininess)
-	gl.BindVertexArray(m.Vao)
-	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(*m.Vertices)/6)) // 6: X,Y,Z,NX,NY,NZ
+func (obj *BasicObj) GetModel() mgl32.Mat4 {
+	return obj.model
 }
 
-func (m *BasicObject) addNormal(vertices []float32) []float32 {
+func (obj *BasicObj) SetModel(newModel mgl32.Mat4) {
+	obj.model = newModel
+}
+
+func (obj *BasicObj) Render() {
+	gl.UseProgram(obj.program)
+	gl.UniformMatrix4fv(obj.uni["project"], 1, false, &(obj.progVar.Vp.Projection[0]))
+	gl.UniformMatrix4fv(obj.uni["camera"], 1, false, &(obj.progVar.Vp.Camera[0]))
+	gl.UniformMatrix4fv(obj.uni["model"], 1, false, &obj.model[0])
+	gl.UniformMatrix3fv(obj.uni["lightPos"], 1, false, &(obj.progVar.Ls.Pos[0]))
+	gl.UniformMatrix3fv(obj.uni["lightColor"], 1, false, &(obj.progVar.Ls.Color[0]))
+	gl.UniformMatrix3fv(obj.uni["viewPos"], 1, false, &(obj.progVar.Vp.Eye[0]))
+	gl.Uniform1f(obj.uni["red"], obj.progVar.Red)
+	gl.Uniform1f(obj.uni["green"], obj.progVar.Green)
+	gl.Uniform1f(obj.uni["blue"], obj.progVar.Blue)
+	gl.Uniform1f(obj.uni["ambientStrength"], obj.progVar.Ls.AmbientStrength)
+	gl.Uniform1f(obj.uni["specularStrength"], obj.progVar.Ls.SpecularStrength)
+	gl.Uniform1f(obj.uni["shininess"], obj.progVar.Ls.Shininess)
+	gl.BindVertexArray(obj.vao)
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(*obj.vertices)/6)) // 6: X,Y,Z,NX,NY,NZ
+}
+
+func (obj *BasicObj) addNormal(vertices []float32) []float32 {
 	newVertices := []float32{}
 	if len(vertices)%9 != 0 {
 		return vertices
@@ -370,17 +416,31 @@ func (m *BasicObject) addNormal(vertices []float32) []float32 {
 	return newVertices
 }
 
-type BasicTexObject struct {
-	Program  uint32
-	Vao      uint32
-	Vertices *[]float32
-	Model    mgl32.Mat4
-	Texture  uint32
-	Uni      *Uniforms
-	Vp       *SimpleViewPoint
+type BasicTexObj struct {
+	program  uint32
+	vao      uint32
+	vertices *[]float32
+	model    mgl32.Mat4
+	uni      map[string]int32
+	progVar  BasicTexObjProgVar
+	texture  uint32
 }
 
-func (m *BasicTexObject) PrepareProgram() {
+type BasicTexObjProgVar struct {
+	TextureSrc string
+	Vp         *SimpleViewPoint
+}
+
+func (obj *BasicTexObj) SetProgramVar(progVar interface{}) {
+	if pv, ok := progVar.(BasicTexObjProgVar); ok {
+		obj.progVar = pv
+	} else {
+		panic("progVar is not a BasicTexObjProgVar")
+	}
+	obj.setTexture()
+}
+
+func (obj *BasicTexObj) PrepareProgram() {
 	vShader := fmt.Sprintf(
 		`
 		#version 330
@@ -417,33 +477,24 @@ func (m *BasicTexObject) PrepareProgram() {
 		%v`,
 		"\x00",
 	)
-	m.Program = MakeProgram(vShader, fShader)
+	obj.program = MakeProgram(vShader, fShader)
+
+	obj.model = mgl32.Ident4()
+	obj.uni = map[string]int32{}
+	obj.uni["project"] = gl.GetUniformLocation(obj.program, gl.Str("projection\x00"))
+	obj.uni["camera"] = gl.GetUniformLocation(obj.program, gl.Str("camera\x00"))
+	obj.uni["model"] = gl.GetUniformLocation(obj.program, gl.Str("model\x00"))
+	obj.uni["tex"] = gl.GetUniformLocation(obj.program, gl.Str("tex\x00"))
+
+	gl.UniformMatrix4fv(obj.uni["project"], 1, false, &(obj.progVar.Vp.Projection[0]))
+	gl.UniformMatrix4fv(obj.uni["camera"], 1, false, &(obj.progVar.Vp.Camera[0]))
+	gl.UniformMatrix4fv(obj.uni["model"], 1, false, &obj.model[0])
+	gl.Uniform1i(obj.uni["tex"], 0)
+	gl.BindFragDataLocation(obj.program, 0, gl.Str("outputColor\x00"))
 }
 
-func (m *BasicTexObject) SetUniforms(vp *SimpleViewPoint) {
-	m.Uni = &Uniforms{}
-	m.Vp = vp
-
-	vp.Projection = mgl32.Perspective(vp.Fovy, vp.Aspect, vp.Near, vp.Far)
-	(*m.Uni)["project"] = gl.GetUniformLocation(m.Program, gl.Str("projection\x00"))
-	gl.UniformMatrix4fv((*m.Uni)["project"], 1, false, &(m.Vp.Projection[0]))
-
-	vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
-	(*m.Uni)["camera"] = gl.GetUniformLocation(m.Program, gl.Str("camera\x00"))
-	gl.UniformMatrix4fv((*m.Uni)["camera"], 1, false, &(m.Vp.Camera[0]))
-
-	m.Model = mgl32.Ident4()
-	(*m.Uni)["model"] = gl.GetUniformLocation(m.Program, gl.Str("model\x00"))
-	gl.UniformMatrix4fv((*m.Uni)["model"], 1, false, &m.Model[0])
-
-	(*m.Uni)["tex"] = gl.GetUniformLocation(m.Program, gl.Str("tex\x00"))
-	gl.Uniform1i((*m.Uni)["tex"], 0)
-
-	gl.BindFragDataLocation(m.Program, 0, gl.Str("outputColor\x00"))
-}
-
-func (m *BasicTexObject) SetVertices(vertices *[]float32) {
-	m.Vertices = vertices
+func (obj *BasicTexObj) SetVertices(vertices *[]float32) {
+	obj.vertices = vertices
 
 	var vao uint32
 	gl.GenVertexArrays(1, &vao)
@@ -481,11 +532,30 @@ func (m *BasicTexObject) SetVertices(vertices *[]float32) {
 		3*4, // use offset 3*4 because we use only last 2 floats of each vertex here.
 	)
 
-	m.Vao = vao
+	obj.vao = vao
 }
 
-func (m *BasicTexObject) SetTexture(file string) {
-	imgFile, err := os.Open(file)
+func (obj *BasicTexObj) GetModel() mgl32.Mat4 {
+	return obj.model
+}
+
+func (obj *BasicTexObj) SetModel(newModel mgl32.Mat4) {
+	obj.model = newModel
+}
+
+func (obj *BasicTexObj) Render() {
+	gl.UseProgram(obj.program)
+	gl.UniformMatrix4fv(obj.uni["project"], 1, false, &(obj.progVar.Vp.Projection[0]))
+	gl.UniformMatrix4fv(obj.uni["camera"], 1, false, &(obj.progVar.Vp.Camera[0]))
+	gl.UniformMatrix4fv(obj.uni["model"], 1, false, &obj.model[0])
+	gl.BindVertexArray(obj.vao)
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.BindTexture(gl.TEXTURE_2D, obj.texture)
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(*obj.vertices)/5)) // 6: X,Y,Z,U,V
+}
+
+func (obj *BasicTexObj) setTexture() {
+	imgFile, err := os.Open(obj.progVar.TextureSrc)
 	if err != nil {
 		panic(err)
 	}
@@ -518,16 +588,5 @@ func (m *BasicTexObject) SetTexture(file string) {
 		gl.RGBA,
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(rgba.Pix))
-	m.Texture = texture
-}
-
-func (m *BasicTexObject) Render() {
-	gl.UseProgram(m.Program)
-	gl.UniformMatrix4fv((*m.Uni)["project"], 1, false, &(m.Vp.Projection[0]))
-	gl.UniformMatrix4fv((*m.Uni)["camera"], 1, false, &(m.Vp.Camera[0]))
-	gl.UniformMatrix4fv((*m.Uni)["model"], 1, false, &m.Model[0])
-	gl.BindVertexArray(m.Vao)
-	gl.ActiveTexture(gl.TEXTURE0)
-	gl.BindTexture(gl.TEXTURE_2D, m.Texture)
-	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(*m.Vertices)/5)) // 6: X,Y,Z,U,V
+	obj.texture = texture
 }

@@ -3,7 +3,6 @@ package main
 import (
 	_ "image/png"
 	"math"
-	"runtime"
 
 	sgl "github.com/burwei/simplegl"
 	"github.com/go-gl/glfw/v3.3/glfw"
@@ -17,17 +16,18 @@ const (
 )
 
 func main() {
-	runtime.LockOSThread()
-	window := sgl.InitGlfwAndOpenGL(width, height, title)
-	defer glfw.Terminate()
+	window := sgl.Init(width, height, title)
+	defer sgl.Terminate()
 
 	vp := sgl.NewViewpoint(width, height)
-	ls := sgl.NewLightSrc()
 
-	cube := sgl.BasicObject{}
-	cube.PrepareProgram(1, 0.3, 0.3)
-	cube.SetUniforms(&vp, &ls)
-	cube.SetVertices(sgl.NewCube(200))
+	cube := sgl.BasicTexObj{}
+	cube.SetProgramVar(sgl.BasicTexObjProgVar{
+		TextureSrc: "wood.png",
+		Vp:         &vp,
+	})
+	cube.PrepareProgram()
+	cube.SetVertices(sgl.NewUniTexCube(200))
 
 	angle := 0.0
 	previousTime := glfw.GetTime()
@@ -42,9 +42,9 @@ func main() {
 		elapsed := time - previousTime
 		previousTime = time
 		angle += elapsed
-		cube.Model = rotateY.Mul4(
-			mgl32.HomogRotate3D(float32(angle)/5, mgl32.Vec3{1, 0, 0}),
-		)
+		cube.SetModel(rotateY.Mul4(
+			mgl32.Rotate3DX(float32(angle) / 5).Mat4(),
+		))
 
 		// Render
 		cube.Render()
