@@ -1,12 +1,13 @@
 # SimpleGL
-SimpleGL is a simple Go wrapper for modern OpenGL. 
-It's a pure Go repo and is fully compatible with go-gl ecosystem. 
+SimpleGL is a simple Go wrapper for modern OpenGL.   
+It's a pure Go repo and is fully compatible with go-gl ecosystem.   
 SimpleGL uses the packages below:
- - [go-gl]
- - [glfw]
- - [mgl32]
+ - [go-gl](https://github.com/go-gl/gl)
+ - [glfw](https://github.com/go-gl/glfw)
+ - [mgl32](https://github.com/go-gl/mathgl)
 
-SimpleGL provides Object, Group, ViewPoint, LightSource, some common shapes and some routine functions to make modern OpenGL development more easily, and fast. It could be seen as a lightweight wrapper just to simplify the OpenGL routines and organize the code, so developers can get rid of those verbose routines and focus on shaders, vertices and business logics.
+SimpleGL provides Object, Group, ViewPoint, LightSource, some common shapes and some routine functions to make modern OpenGL development more easily, and fast.  
+It could be seen as a lightweight wrapper just to simplify the OpenGL routines and organize the code, so developers can get rid of those verbose routines and focus on shaders, vertices and business logics.  
 
 ## Installation
 ```
@@ -14,8 +15,8 @@ go get github.com/burwei/simplegl
 ```
 
 ## Quick Start
-Let's try the hello cube program first, which shows a rotating cube.
-This is the modified version of [go-gl/example/gl41core-cube] example.
+Let's get start with the hello cube program. It shows a rotating cube.  
+This program is the modified version of [go-gl/example/gl41core-cube](https://github.com/go-gl/example/tree/master/gl41core-cube) example.  
 ```
 package main
 
@@ -75,12 +76,9 @@ func main() {
 	}
 }
 ```
+result:
+<img src="https://imgur.com/a/HlPT0cW" width="40%">
 
-### Examples
+
+## Examples
 For more examples, see the example folder.
-
-
-[go-gl]: (https://github.com/go-gl/gl)
-[glfw]: (https://github.com/go-gl/glfw)
-[mgl32]: (https://github.com/go-gl/mathgl)
-[go-gl/example/gl41core-cube]: (https://github.com/go-gl/example/tree/master/gl41core-cube)
