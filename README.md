@@ -142,7 +142,7 @@ cube.Render()
 ```
 
 ### Shape
-Shape is determined by vertex array. The most basic vertex array contains 3*n vertices, where 3 is X,Y,Z position in order and n is the number of the vertices.  
+Shapes are described by vertex arrays. The most basic vertex array contains 3*n vertices, where 3 is X,Y,Z position in order and n is the number of the vertices. Sometimes vertex array will contains some meta data such as the direction of the texture.  
 
 
 ### Viewpoint & Coordinate system
@@ -157,12 +157,71 @@ There are four coordinate systems here:
  3. view-space coordinate
  4. clip-space coordinate
 
- <img src="https://imgur.com/undefined.png" width="80%">
+ <img src="https://imgur.com/fw0Uao4.png" width="80%">
+
  
 ```
-FragPos = vec3(model * vec4(aPos, 1.0));
-gl_Position = projection * camera * vec4(FragPos, 1.0);
+// part of sgl.BasicObj's vertex shader code
+void main()
+{
+	FragPos = vec3(model * vec4(aPos, 1.0));
+	Normal = mat3(transpose(inverse(model))) * aNormal;   
+
+	gl_Position = projection * camera * vec4(FragPos, 1.0);
+}
 ```
+### LightSource & Material
+sgl.LightSource and agl.Material provides a default light source and default material. These two are essential for those sgl.Object that render the lighting effect, and sgl.BasicObj is of them.  
+
+sgl.LightSource contains 3 attributes: light position, light color and light intensity. All of them are easy to understand.  
+
+sgl.Material contains 4 attributes: ambient, diffuse, specular and shininess. Ambient determines what color does the material reflects under ambient lighting; diffuse determines what color does the material reflects under diffuse lighting; specular determines the color of the material's specular highligh; and shininess determines the scattering/radius of the specular highlight.
+
+```
+// part of sgl.BasicObj's fragment shader code 
+void main()
+{
+	vec3 objectColor = vec3(red, green, blue);
+
+	// ambient
+	vec3 ambient = lightColor * materialAmbient;
+		
+	// diffuse 
+	vec3 norm = normalize(Normal);
+	vec3 lightDir = normalize(lightPos - FragPos);
+	float diff = max(dot(norm, lightDir), 0.0);
+	vec3 diffuse = (lightIntensity * lightColor) * (diff * materialDiffuse);
+		
+	// specular
+	vec3 viewDir = normalize(viewPos - FragPos);
+	vec3 reflectDir = reflect(-lightDir, norm);  
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0), materialShininess);
+	vec3 specular = lightColor * (spec * materialSpecular);    
+		
+	vec3 result = (ambient + diffuse + specular) * objectColor;
+	FragColor = vec4(result, 1.0);
+} 
+```
+
+### Group
+sgl.Group collects mutiple sgl.Object and make them move together like a bigger object. Besides making sgl.Object move together, sgl.Group can also move any collected sgl.Object individually.  
+
+```
+group := sgl.NewGroup()
+group.AddObject("cube1", &cube1)
+
+group.SetObjectModel("cube1", rotateY.Mul4(
+	mgl32.Rotate3DX(float32(angle)/5).Mat4(),
+))
+group.SetGroupModel(
+	mgl32.Translate3D(0, float32(tr), 0).Mul4(
+		mgl32.Rotate3DY(float32(angle) / 5).Mat4(),
+	),
+)
+
+group.Render()
+```
+
 
 
 ## Examples
