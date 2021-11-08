@@ -14,11 +14,22 @@ type Object interface {
 	// SetProgramVar sets the program's constant and uniform variables.
 	SetProgramVar(interface{})
 
-	// PrepareProgram prepares shader program and uniform variables.
-	PrepareProgram()
+	// PrepareProgram prepares a shader program.
+	// If the arg is true, bind uniform variables,
+	// otherwise store the program only without binding uniform variables.
+	PrepareProgram(bool)
+
+	// BindProgramVar bind uniform variables to a shader program.
+	BindProgramVar(uint32)
 
 	// SetVertices sets vao and vbo.
 	SetVertices(*[]float32)
+
+	// GetModel gets the model of the object.
+	GetProgram() uint32
+
+	// SetModel sets the model of the object.
+	SetProgram(uint32)
 
 	// GetModel gets the model of the object.
 	GetModel() mgl32.Mat4
@@ -47,7 +58,7 @@ type BasicNoLightObjProgVar struct {
 	Red   float32
 	Green float32
 	Blue  float32
-	Vp    *SimpleViewPoint
+	Vp    *Viewpoint
 }
 
 func (obj *BasicNoLightObj) SetProgramVar(progVar interface{}) {
@@ -58,7 +69,7 @@ func (obj *BasicNoLightObj) SetProgramVar(progVar interface{}) {
 	}
 }
 
-func (obj *BasicNoLightObj) PrepareProgram() {
+func (obj *BasicNoLightObj) PrepareProgram(bindProgramVar bool) {
 	vShader := fmt.Sprintf(
 		`
 		#version 330
@@ -88,8 +99,17 @@ func (obj *BasicNoLightObj) PrepareProgram() {
 		%v`,
 		"\x00",
 	)
-	obj.program = MakeProgram(vShader, fShader)
+	program := MakeProgram(vShader, fShader)
+	if bindProgramVar {
+		obj.BindProgramVar(program)
+	} else {
+		obj.program = program
+	}
 
+}
+
+func (obj *BasicNoLightObj) BindProgramVar(program uint32) {
+	obj.program = program
 	obj.model = mgl32.Ident4()
 	obj.uni = map[string]int32{}
 	obj.uni["project"] = gl.GetUniformLocation(obj.program, gl.Str("projection\x00"))
@@ -135,6 +155,14 @@ func (obj *BasicNoLightObj) SetVertices(vertices *[]float32) {
 	obj.vao = vao
 }
 
+func (obj *BasicNoLightObj) GetProgram() uint32 {
+	return obj.program
+}
+
+func (obj *BasicNoLightObj) SetProgram(program uint32) {
+	obj.program = program
+}
+
 func (obj *BasicNoLightObj) GetModel() mgl32.Mat4 {
 	return obj.model
 }
@@ -168,8 +196,9 @@ type BasicObjProgVar struct {
 	Red   float32
 	Green float32
 	Blue  float32
-	Vp    *SimpleViewPoint
-	Ls    *SimpleLightSrc
+	Vp    *Viewpoint
+	Ls    *LightSrc
+	Mt    *Material
 }
 
 func (obj *BasicObj) SetProgramVar(progVar interface{}) {
@@ -180,7 +209,7 @@ func (obj *BasicObj) SetProgramVar(progVar interface{}) {
 	}
 }
 
-func (obj *BasicObj) PrepareProgram() {
+func (obj *BasicObj) PrepareProgram(bindProgramVar bool) {
 	vShader := fmt.Sprintf(
 		`
 		#version 330 core
@@ -212,34 +241,39 @@ func (obj *BasicObj) PrepareProgram() {
 		in vec3 Normal;  
 		in vec3 FragPos;  
 		
+		uniform vec3 viewPos;
+
 		uniform float red;
 		uniform float green;
 		uniform float blue;
-		uniform float ambientStrength;
-		uniform float specularStrength;
-		uniform float shininess; 
+
 		uniform vec3 lightPos; 
 		uniform vec3 lightColor;
-		uniform vec3 viewPos;
+		uniform float lightIntensity;
+
+		uniform vec3 materialAmbient;
+		uniform vec3 materialDiffuse;
+		uniform vec3 materialSpecular;
+		uniform float materialShininess; 
 
 		void main()
 		{
 			vec3 objectColor = vec3(red, green, blue);
 
 			// ambient
-			vec3 ambient = ambientStrength * lightColor;
+			vec3 ambient = lightColor * materialAmbient;
 				
 			// diffuse 
 			vec3 norm = normalize(Normal);
 			vec3 lightDir = normalize(lightPos - FragPos);
 			float diff = max(dot(norm, lightDir), 0.0);
-			vec3 diffuse = diff * lightColor;
+			vec3 diffuse = (lightIntensity * lightColor) * (diff * materialDiffuse);
 				
 			// specular
 			vec3 viewDir = normalize(viewPos - FragPos);
 			vec3 reflectDir = reflect(-lightDir, norm);  
-			float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-			vec3 specular = specularStrength * spec * lightColor;  
+			float spec = pow(max(dot(viewDir, reflectDir), 0.0), materialShininess);
+			vec3 specular = lightColor * (spec * materialSpecular);    
 				
 			vec3 result = (ambient + diffuse + specular) * objectColor;
 			FragColor = vec4(result, 1.0);
@@ -247,8 +281,16 @@ func (obj *BasicObj) PrepareProgram() {
 		%v`,
 		"\x00",
 	)
-	obj.program = MakeProgram(vShader, fShader)
+	program := MakeProgram(vShader, fShader)
+	if bindProgramVar {
+		obj.BindProgramVar(program)
+	} else {
+		obj.program = program
+	}
+}
 
+func (obj *BasicObj) BindProgramVar(program uint32) {
+	obj.program = program
 	obj.model = mgl32.Ident4()
 	obj.uni = map[string]int32{}
 	obj.uni["project"] = gl.GetUniformLocation(obj.program, gl.Str("projection\x00"))
@@ -256,13 +298,15 @@ func (obj *BasicObj) PrepareProgram() {
 	obj.uni["model"] = gl.GetUniformLocation(obj.program, gl.Str("model\x00"))
 	obj.uni["lightPos"] = gl.GetUniformLocation(obj.program, gl.Str("lightPos\x00"))
 	obj.uni["lightColor"] = gl.GetUniformLocation(obj.program, gl.Str("lightColor\x00"))
+	obj.uni["lightIntensity"] = gl.GetUniformLocation(obj.program, gl.Str("lightIntensity\x00"))
 	obj.uni["viewPos"] = gl.GetUniformLocation(obj.program, gl.Str("viewPos\x00"))
 	obj.uni["red"] = gl.GetUniformLocation(obj.program, gl.Str("red\x00"))
 	obj.uni["green"] = gl.GetUniformLocation(obj.program, gl.Str("green\x00"))
 	obj.uni["blue"] = gl.GetUniformLocation(obj.program, gl.Str("blue\x00"))
-	obj.uni["ambientStrength"] = gl.GetUniformLocation(obj.program, gl.Str("ambientStrength\x00"))
-	obj.uni["specularStrength"] = gl.GetUniformLocation(obj.program, gl.Str("specularStrength\x00"))
-	obj.uni["shininess"] = gl.GetUniformLocation(obj.program, gl.Str("shininess\x00"))
+	obj.uni["materialAmbient"] = gl.GetUniformLocation(obj.program, gl.Str("materialAmbient\x00"))
+	obj.uni["materialDiffuse"] = gl.GetUniformLocation(obj.program, gl.Str("materialDiffuse\x00"))
+	obj.uni["materialSpecular"] = gl.GetUniformLocation(obj.program, gl.Str("materialSpecular\x00"))
+	obj.uni["materialShininess"] = gl.GetUniformLocation(obj.program, gl.Str("materialShininess\x00"))
 
 	gl.UniformMatrix4fv(obj.uni["project"], 1, false, &(obj.progVar.Vp.Projection[0]))
 	gl.UniformMatrix4fv(obj.uni["camera"], 1, false, &(obj.progVar.Vp.Camera[0]))
@@ -270,12 +314,14 @@ func (obj *BasicObj) PrepareProgram() {
 	gl.Uniform3fv(obj.uni["lightPos"], 1, &(obj.progVar.Ls.Pos[0]))
 	gl.Uniform3fv(obj.uni["lightColor"], 1, &(obj.progVar.Ls.Color[0]))
 	gl.Uniform3fv(obj.uni["viewPos"], 1, &(obj.progVar.Vp.Eye[0]))
+	gl.Uniform1f(obj.uni["lightIntensity"], obj.progVar.Ls.Intensity)
 	gl.Uniform1f(obj.uni["red"], obj.progVar.Red)
 	gl.Uniform1f(obj.uni["green"], obj.progVar.Green)
 	gl.Uniform1f(obj.uni["blue"], obj.progVar.Blue)
-	gl.Uniform1f(obj.uni["ambientStrength"], obj.progVar.Ls.AmbientStrength)
-	gl.Uniform1f(obj.uni["specularStrength"], obj.progVar.Ls.SpecularStrength)
-	gl.Uniform1f(obj.uni["shininess"], obj.progVar.Ls.Shininess)
+	gl.Uniform3fv(obj.uni["materialAmbient"], 1, &(obj.progVar.Mt.Ambient[0]))
+	gl.Uniform3fv(obj.uni["materialDiffuse"], 1, &(obj.progVar.Mt.Diffuse[0]))
+	gl.Uniform3fv(obj.uni["materialSpecular"],1, &(obj.progVar.Mt.Specular[0]))
+	gl.Uniform1f(obj.uni["materialShininess"], obj.progVar.Mt.Shininess)
 	gl.BindFragDataLocation(obj.program, 0, gl.Str("outputColor\x00"))
 }
 
@@ -314,10 +360,18 @@ func (obj *BasicObj) SetVertices(vertices *[]float32) {
 		3,
 		gl.FLOAT,
 		false,
-		6*4, // 4 is the size of float32, and there're 3 floats per vertex in the vertex array.
+		6*4, // 4 is the size of float32, and there're 6 floats per vertex in the vertex array.
 		3*4, // use offset 3*4 because we use only last 3 floats of each vertex here.
 	)
 	obj.vao = vao
+}
+
+func (obj *BasicObj) GetProgram() uint32 {
+	return obj.program
+}
+
+func (obj *BasicObj) SetProgram(program uint32) {
+	obj.program = program
 }
 
 func (obj *BasicObj) GetModel() mgl32.Mat4 {
@@ -333,15 +387,17 @@ func (obj *BasicObj) Render() {
 	gl.UniformMatrix4fv(obj.uni["project"], 1, false, &(obj.progVar.Vp.Projection[0]))
 	gl.UniformMatrix4fv(obj.uni["camera"], 1, false, &(obj.progVar.Vp.Camera[0]))
 	gl.UniformMatrix4fv(obj.uni["model"], 1, false, &obj.model[0])
-	gl.UniformMatrix3fv(obj.uni["lightPos"], 1, false, &(obj.progVar.Ls.Pos[0]))
-	gl.UniformMatrix3fv(obj.uni["lightColor"], 1, false, &(obj.progVar.Ls.Color[0]))
-	gl.UniformMatrix3fv(obj.uni["viewPos"], 1, false, &(obj.progVar.Vp.Eye[0]))
+	gl.Uniform3fv(obj.uni["lightPos"], 1, &(obj.progVar.Ls.Pos[0]))
+	gl.Uniform3fv(obj.uni["lightColor"], 1, &(obj.progVar.Ls.Color[0]))
+	gl.Uniform3fv(obj.uni["viewPos"], 1, &(obj.progVar.Vp.Eye[0]))
+	gl.Uniform1f(obj.uni["lightIntensity"], obj.progVar.Ls.Intensity)
 	gl.Uniform1f(obj.uni["red"], obj.progVar.Red)
 	gl.Uniform1f(obj.uni["green"], obj.progVar.Green)
 	gl.Uniform1f(obj.uni["blue"], obj.progVar.Blue)
-	gl.Uniform1f(obj.uni["ambientStrength"], obj.progVar.Ls.AmbientStrength)
-	gl.Uniform1f(obj.uni["specularStrength"], obj.progVar.Ls.SpecularStrength)
-	gl.Uniform1f(obj.uni["shininess"], obj.progVar.Ls.Shininess)
+	gl.Uniform3fv(obj.uni["materialAmbient"], 1, &(obj.progVar.Mt.Ambient[0]))
+	gl.Uniform3fv(obj.uni["materialDiffuse"], 1, &(obj.progVar.Mt.Diffuse[0]))
+	gl.Uniform3fv(obj.uni["materialSpecular"],1, &(obj.progVar.Mt.Specular[0]))
+	gl.Uniform1f(obj.uni["materialShininess"], obj.progVar.Mt.Shininess)
 	gl.BindVertexArray(obj.vao)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(*obj.vertices)/6)) // 6: X,Y,Z,NX,NY,NZ
 }
@@ -428,7 +484,7 @@ type BasicTexObj struct {
 
 type BasicTexObjProgVar struct {
 	TextureSrc string
-	Vp         *SimpleViewPoint
+	Vp         *Viewpoint
 }
 
 func (obj *BasicTexObj) SetProgramVar(progVar interface{}) {
@@ -440,7 +496,7 @@ func (obj *BasicTexObj) SetProgramVar(progVar interface{}) {
 	obj.setTexture()
 }
 
-func (obj *BasicTexObj) PrepareProgram() {
+func (obj *BasicTexObj) PrepareProgram(bindProgramVar bool) {
 	vShader := fmt.Sprintf(
 		`
 		#version 330
@@ -477,8 +533,16 @@ func (obj *BasicTexObj) PrepareProgram() {
 		%v`,
 		"\x00",
 	)
-	obj.program = MakeProgram(vShader, fShader)
+	program := MakeProgram(vShader, fShader)
+	if bindProgramVar {
+		obj.BindProgramVar(program)
+	} else {
+		obj.program = program
+	}
+}
 
+func (obj *BasicTexObj) BindProgramVar(program uint32) {
+	obj.program = program
 	obj.model = mgl32.Ident4()
 	obj.uni = map[string]int32{}
 	obj.uni["project"] = gl.GetUniformLocation(obj.program, gl.Str("projection\x00"))
@@ -533,6 +597,14 @@ func (obj *BasicTexObj) SetVertices(vertices *[]float32) {
 	)
 
 	obj.vao = vao
+}
+
+func (obj *BasicTexObj) GetProgram() uint32 {
+	return obj.program
+}
+
+func (obj *BasicTexObj) SetProgram(program uint32) {
+	obj.program = program
 }
 
 func (obj *BasicTexObj) GetModel() mgl32.Mat4 {

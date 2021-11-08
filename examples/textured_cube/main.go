@@ -26,7 +26,7 @@ func main() {
 		TextureSrc: "wood.png",
 		Vp:         &vp,
 	})
-	cube.PrepareProgram()
+	cube.PrepareProgram(true)
 	cube.SetVertices(sgl.NewUniTexCube(200))
 
 	angle := 0.0

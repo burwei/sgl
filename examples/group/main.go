@@ -21,6 +21,7 @@ func main() {
 
 	vp := sgl.NewViewpoint(width, height)
 	ls := sgl.NewLightSrc()
+	mt := sgl.NewMaterial()
 
 	cube1 := sgl.BasicObj{}
 	cube1.SetProgramVar(sgl.BasicObjProgVar{
@@ -29,8 +30,9 @@ func main() {
 		Blue:  0.3,
 		Vp:    &vp,
 		Ls:    &ls,
+		Mt:    &mt,
 	})
-	cube1.PrepareProgram()
+	cube1.PrepareProgram(true)
 	cube1.SetVertices(sgl.NewCube(200))
 
 	cube2 := sgl.BasicTexObj{}
@@ -38,7 +40,7 @@ func main() {
 		TextureSrc: "wood.png",
 		Vp:         &vp,
 	})
-	cube2.PrepareProgram()
+	cube2.PrepareProgram(true)
 	cube2.SetVertices(sgl.NewUniTexCube(100))
 
 	group := sgl.NewGroup()
@@ -83,8 +85,8 @@ func main() {
 
 		// Group movement 2: both rotate and translate
 		// group.SetGroupModel(
-		// 	mgl32.Rotate3DY(float32(angle) / 5).Mat4().Mul4(
-		// 		mgl32.Translate3D(0, float32(tr), 0),
+		// 	mgl32.Translate3D(0, float32(tr), 0).Mul4(
+		// 		mgl32.Rotate3DY(float32(angle) / 5).Mat4(),
 		// 	),
 		// )
 

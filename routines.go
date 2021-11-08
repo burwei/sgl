@@ -104,7 +104,7 @@ func MakeProgram(vertexShaderSource, fragmentShaderSource string) uint32 {
 	return program
 }
 
-func BeforeMainLoop(window *glfw.Window, vp *SimpleViewPoint) {
+func BeforeMainLoop(window *glfw.Window, vp *Viewpoint) {
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(1.0, 1.0, 1.0, 1.0)

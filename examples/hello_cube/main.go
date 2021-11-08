@@ -20,6 +20,7 @@ func main() {
 
 	vp := sgl.NewViewpoint(width, height)
 	ls := sgl.NewLightSrc()
+	mt := sgl.NewMaterial()
 
 	cube := sgl.BasicObj{}
 	cube.SetProgramVar(sgl.BasicObjProgVar{
@@ -28,8 +29,9 @@ func main() {
 		Blue:  0.3,
 		Vp:    &vp,
 		Ls:    &ls,
+		Mt:    &mt,
 	})
-	cube.PrepareProgram()
+	cube.PrepareProgram(true)
 	cube.SetVertices(sgl.NewCube(200))
 
 	angle := 0.0
