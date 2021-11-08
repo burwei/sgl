@@ -2,9 +2,8 @@
 SimpleGL is a simple Go wrapper for modern OpenGL.   
 It's a pure Go repo and is fully compatible with go-gl ecosystem.  
 
-<p align="center">
-  <img src="https://imgur.com/0WeWWPV.gif" width="100%">
-</p>
+<img src="https://imgur.com/0WeWWPV.gif" width="100%">
+
 
 SimpleGL uses the packages below:  
  - [go-gl](https://github.com/go-gl/gl)
