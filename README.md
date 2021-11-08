@@ -2,7 +2,7 @@
 SimpleGL is a simple Go wrapper for modern OpenGL.   
 It's a pure Go repo and is fully compatible with go-gl ecosystem.  
 
-<img src="https://imgur.com/0WeWWPV.gif" width="100%">
+<img src="https://imgur.com/yeRAB0c.gif" width="100%">
 
 
 SimpleGL uses the packages below:  
@@ -103,8 +103,7 @@ The usage introduction contains the contents below:
 Modern OpenGL program can be roughly divided into two parts, CPU program and GPU program (shader program).  
 
 The CPU program contains two parts, setup and main loop.  
-In setup part we call ```sgl.Init()```, which will lock the current thread and init OpenGL and GLFW. GLFW is the library that handles the graph output and device input, such as window, keyboard, mouse, joystick and so on.  
-Variable assignment, input callback settings and all things we should prepared before starting the main loop will be in the setup part.  
+In setup part we call ```sgl.Init()```, which will lock the current thread and init OpenGL and GLFW. GLFW is the library that handles the graph output and device input, such as window, keyboard, mouse, joystick and so on. Variable assignment, input callback settings and all things we should prepared before starting the main loop will be in the setup part.  
 The main loop is ```for !window.ShouldClose() {}``` loop. In main loop part we render the objects. Before and after the rendering, we call ```sgl.BeforeDrawing()``` and ```sgl.AfterDrawing()``` to clean, swap buffers and poll events.  
 
 The GPU program (shader program) is written in GLSL. One program object can contain multiple shaders, but usually we use the program object that contains one vertex shader and one fragment shader. Vertex shader calculates the positions of vertices and fragment shader calculates the colors of fragments. The GPU program is prepared in ```Object.PrepareProgram()```, and the variables of the GPU program are updated when calling ```Object.Render()```.  
@@ -144,6 +143,26 @@ cube.Render()
 
 ### Shape
 Shape is determined by vertex array. The most basic vertex array contains 3*n vertices, where 3 is X,Y,Z position in order and n is the number of the vertices.  
+
+
+### Viewpoint & Coordinate system
+sgl.Viewpoint provides a default camera (eye) position on (X,Y,Z) = (0,0,1000) and default target position on (X,Y,Z) = (0,0,0). The default top direction of the camera is positive Y and the default projection is perspective projection.  
+
+<img src="https://imgur.com/9XwCWA1.png" width="80%">
+
+
+There are four coordinate systems here:  
+ 1. local coordinate
+ 2. world-space coordinate
+ 3. view-space coordinate
+ 4. clip-space coordinate
+
+ <img src="https://imgur.com/undefined.png" width="80%">
+ 
+```
+FragPos = vec3(model * vec4(aPos, 1.0));
+gl_Position = projection * camera * vec4(FragPos, 1.0);
+```
 
 
 ## Examples
