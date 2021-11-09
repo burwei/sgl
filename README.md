@@ -10,7 +10,7 @@ SimpleGL uses the packages below:
  - [glfw](https://github.com/go-gl/glfw)
  - [mgl32](https://github.com/go-gl/mathgl)
 
-SimpleGL provides Object, Group, Viewpoint, LightSource, some common shapes and some routine functions to make modern OpenGL development more easily, and fast.  
+SimpleGL provides Object, Group, Viewpoint, LightSource, some common shapes and some routine functions to make modern OpenGL development more easily and fast.  
 It could be seen as a lightweight wrapper just to simplify the OpenGL routines and organize the code, so developers can get rid of those verbose routines and focus on shaders, vertices and business logics.  
 
 ## Installation
@@ -89,7 +89,7 @@ result:
 To use SimpleGL, developers should know how to develop modern OpenGL.  
 [LeanOpenGL.com](https://learnopengl.com/Getting-started/OpenGL) is a good place to get started if one is not so familiar with OpenGL.  
 
-However, developers with Go programming skills might still able to learn some basic OpenGL directly from SimpleGL, since it organizes the code to make it easier to use and understand.
+The good news is, developers with Go programming skills and zero OpenGL knowledge might still able to learn some basic OpenGL directly from SimpleGL, since it organizes the code to make it easier to use and understand.
 
 The usage introduction contains the contents below:  
  - OpenGL program struture
@@ -103,20 +103,20 @@ The usage introduction contains the contents below:
 Modern OpenGL program can be roughly divided into two parts, CPU program and GPU programs.  
 
 The CPU program contains two parts, setup and main loop.  
-In setup part we call ```sgl.Init()```, which will lock the current thread and init OpenGL and GLFW. GLFW is the library that handles the graph output and device input, such as window, keyboard, mouse, joystick and so on. Variable assignment, input callback settings and all things we should prepared before starting the main loop will be in the setup part.  
-The main loop is ```for !window.ShouldClose() {}``` loop. In main loop part we render the objects. Before and after the rendering, we call ```sgl.BeforeDrawing()``` and ```sgl.AfterDrawing()``` to clean, swap buffers and poll events.  
+In setup part we call ```sgl.Init()```, which will lock the current thread and init OpenGL and GLFW. GLFW is the library that handles the graphics output and device input, such as window, keyboard, mouse, joystick and so on. Variable assignment, input callback settings and all things we should prepared before starting the main loop will be in the setup part.  
+The main loop is the ```for !window.ShouldClose() {}``` loop. We render the objects in main loop. Before and after the rendering, we call ```sgl.BeforeDrawing()``` and ```sgl.AfterDrawing()``` to clean, swap buffers and poll events.  
 
-The GPU programs contains also two part, Program Object and shaders. Program Object is used in render operation and it's also the "Program" that SimpleGL refers to when calling APIs like ```sgl.Object.PrepareProgram()``` and ```slg.ObjectSetProgramVar()``` and so on. Shaders are written in GLSL, and are used to determine how to draw the vertices.   
-One Program Object can combine multiple shaders to do the rendering work, but we only attach a vertex shader and a fragment shader on it in SimpleGL (so far). Vertex shader calculates the positions of vertices and fragment shader calculates the colors of fragments.   
+The GPU programs contains also two parts, Program Object and shaders. Program Object is used in render operation and it's also the "Program" that SimpleGL refers to when calling APIs like ```sgl.Object.PrepareProgram()``` and ```slg.ObjectSetProgramVar()``` and so on. SimpleGL sees each Program Object as a final all-in-one program for each sgl.Object, so all varialbes of shaders attached to the Program Object are also seen as the variables of the "Program". Shaders are written in GLSL, and are used to determine how to draw the vertices.   
+One Program Object can combine multiple shaders to do the rendering job, but we only attach a vertex shader and a fragment shader on it in SimpleGL (so far). Vertex shader calculates the positions of vertices and fragment shader calculates the colors of fragments.   
 
 The above is just a simplified introduction. To know more about how OpenGL works, see [OpenGL rendering pipeline overview](https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview).  
 
 ### Object
-sgl.Object is an interface that represents a object with specific shaders that can be render on the window after it gets the program variables and vertex array it needs.  
+sgl.Object is an interface that represents a object with a specific Project Object that can be render on the window after it gets the program variables and vertex array it needs.  
 
 sgl.Object + program variables + vertex array = visuable object  
 
-sgl.BasicObj is the object with basic lighting, and it's able to draw any shape (any 3*n vertex array). Developers can implement their own sgl.Object to create some cool objects. By implement sgl.Object, the object could be more easiy to use and be able to make a group to move together.
+sgl.BasicObj is the object with basic lighting, and it's able to draw any shape (any vertex array that contains 3*n float32 values). Developers can implement their own sgl.Object to create some cool objects. By implement sgl.Object, the object could be more easiy to use and be able to move together as a group.
 
 ```
 // create a sgl.Object
@@ -146,7 +146,7 @@ cube.Render()
 ### Shape
 Shapes are described by vertex arrays, which are 1-D float32 arrays. The most basic vertex arrays are those who use 3 float32 values to represent a vertex's X,Y,Z position. Sometimes vertex array will contains some meta data such as the direction of the texture.  
 
-For instance, sgl.NewCube() is a vertex array use 3 float32 to represent a vertex.  
+For instance, sgl.NewCube() is a vertex array that use 3 float32 to represent a vertex and form a cube with a user-defined side length.
 
 ```
 cube.SetVertices(sgl.NewCube(200))
@@ -154,7 +154,7 @@ cube.SetVertices(sgl.NewCube(200))
 
 
 ### Viewpoint & Coordinate system
-sgl.Viewpoint provides a default camera (eye) position on (X,Y,Z) = (0,0,1000) and default target position on (X,Y,Z) = (0,0,0). The default top direction of the camera is positive Y and the default projection is perspective projection.   
+sgl.Viewpoint provides a default camera (eye) position on (X, Y, Z) = (0, 0, 1000) and default target position on (X, Y, Z) = (0, 0, 0). The default top direction of the camera is positive Y and the default projection is perspective projection.   
 
 Before we read the code, we should understand the position of the camera as well as the coordinate systems.  
 
@@ -186,7 +186,7 @@ cube.SetProgramVar(sgl.BasicObjProgVar{
 
 
 ### LightSource & Material
-sgl.LightSource and agl.Material provides a default light source and default material. These two are essential for those sgl.Object that render the lighting effect, and sgl.BasicObj is of them.  
+sgl.LightSource and agl.Material provides a default light source and default material. These two are essential for those sgl.Object that render the lighting effect.  
 
 sgl.LightSource contains 3 attributes: light position, light color and light intensity. All of them are easy to understand.  
 
