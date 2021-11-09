@@ -3,7 +3,7 @@ package simplegl
 // NewSimpleCube will return vertices of a cube with side length l.
 func NewCube(l float32) *[]float32{
 	return &[]float32{
-		//  X, Y, Z, U, V
+		//  X, Y, Z
 		// Bottom (-Y)
 		-l/2, -l/2, -l/2,
 		l/2, -l/2, -l/2,

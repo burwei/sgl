@@ -27,7 +27,7 @@ func main() {
 		Blue: 0.3,
 		Vp: &vp,
 	})
-	cube.PrepareProgram()
+	cube.PrepareProgram(true)
 	cube.SetVertices(sgl.NewCube(200))
 
 	angle := 0.0

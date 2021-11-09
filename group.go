@@ -14,6 +14,7 @@ func NewGroup() Group{
 	g := Group{}
 	g.objects = map[string]Object{}
 	g.objectModels = map[string]mgl32.Mat4{}
+	g.groupModel = mgl32.Ident4()
 	return g
 }
 
