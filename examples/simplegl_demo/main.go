@@ -21,11 +21,12 @@ func main() {
 
 	vp := sgl.NewViewpoint(width, height)
 	ls := sgl.NewLightSrc()
-	mt := sgl.NewMaterial()
-	mt.Ambient = mgl32.Vec3{0.1, 0.1, 0.1}
-	mt.Diffuse = mgl32.Vec3{0.6, 0.6, 0.6}
-	mt.Specular = mgl32.Vec3{1.5, 1.5, 1.5}
-	mt.Shininess = 24
+	mt := sgl.Material{
+		Ambient: mgl32.Vec3{0.1, 0.1, 0.1},
+		Diffuse: mgl32.Vec3{0.6, 0.6, 0.6},
+		Specular: mgl32.Vec3{1.5, 1.5, 1.5},
+		Shininess: 24,
+	}
 
 	emptyCube := sgl.BasicObj{}
 	emptyCube.PrepareProgram(false)

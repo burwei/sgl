@@ -2,7 +2,7 @@
 SimpleGL is a simple Go wrapper for modern OpenGL.   
 It's a pure Go repo and is fully compatible with go-gl ecosystem.  
 
-<img src="https://imgur.com/yeRAB0c.gif" width="100%">
+<img src="https://imgur.com/JX65X3U.gif" width="100%">
 
 
 SimpleGL uses the packages below:  
@@ -100,18 +100,19 @@ The usage introduction contains the contents below:
  - Group
 
 ### OpenGL Program structure
-Modern OpenGL program can be roughly divided into two parts, CPU program and GPU program (shader program).  
+Modern OpenGL program can be roughly divided into two parts, CPU program and GPU programs.  
 
 The CPU program contains two parts, setup and main loop.  
 In setup part we call ```sgl.Init()```, which will lock the current thread and init OpenGL and GLFW. GLFW is the library that handles the graph output and device input, such as window, keyboard, mouse, joystick and so on. Variable assignment, input callback settings and all things we should prepared before starting the main loop will be in the setup part.  
 The main loop is ```for !window.ShouldClose() {}``` loop. In main loop part we render the objects. Before and after the rendering, we call ```sgl.BeforeDrawing()``` and ```sgl.AfterDrawing()``` to clean, swap buffers and poll events.  
 
-The GPU program (shader program) is written in GLSL. One program object can contain multiple shaders, but usually we use the program object that contains one vertex shader and one fragment shader. Vertex shader calculates the positions of vertices and fragment shader calculates the colors of fragments. The GPU program is prepared in ```Object.PrepareProgram()```, and the variables of the GPU program are updated when calling ```Object.Render()```.  
+The GPU programs contains also two part, Program Object and shaders. Program Object is used in render operation and it's also the "Program" that SimpleGL refers to when calling APIs like ```sgl.Object.PrepareProgram()``` and ```slg.ObjectSetProgramVar()``` and so on. Shaders are written in GLSL, and are used to determine how to draw the vertices.   
+One Program Object can combine multiple shaders to do the rendering work, but we only attach a vertex shader and a fragment shader on it in SimpleGL (so far). Vertex shader calculates the positions of vertices and fragment shader calculates the colors of fragments.   
 
-To know more about how OpenGL works, see [OpenGL rendering pipeline overview](https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview).  
+The above is just a simplified introduction. To know more about how OpenGL works, see [OpenGL rendering pipeline overview](https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview).  
 
 ### Object
-sgl.Object is an interface that represents a object with specific vertex shader and fragment shader that can be render on the window after it gets the program variables and vertex array it needs.  
+sgl.Object is an interface that represents a object with specific shaders that can be render on the window after it gets the program variables and vertex array it needs.  
 
 sgl.Object + program variables + vertex array = visuable object  
 
@@ -141,15 +142,23 @@ cube.SetVertices(sgl.NewCube(200))
 cube.Render()
 ```
 
+
 ### Shape
-Shapes are described by vertex arrays. The most basic vertex array contains 3*n vertices, where 3 is X,Y,Z position in order and n is the number of the vertices. Sometimes vertex array will contains some meta data such as the direction of the texture.  
+Shapes are described by vertex arrays, which are 1-D float32 arrays. The most basic vertex arrays are those who use 3 float32 values to represent a vertex's X,Y,Z position. Sometimes vertex array will contains some meta data such as the direction of the texture.  
+
+For instance, sgl.NewCube() is a vertex array use 3 float32 to represent a vertex.  
+
+```
+cube.SetVertices(sgl.NewCube(200))
+```
 
 
 ### Viewpoint & Coordinate system
-sgl.Viewpoint provides a default camera (eye) position on (X,Y,Z) = (0,0,1000) and default target position on (X,Y,Z) = (0,0,0). The default top direction of the camera is positive Y and the default projection is perspective projection.  
+sgl.Viewpoint provides a default camera (eye) position on (X,Y,Z) = (0,0,1000) and default target position on (X,Y,Z) = (0,0,0). The default top direction of the camera is positive Y and the default projection is perspective projection.   
+
+Before we read the code, we should understand the position of the camera as well as the coordinate systems.  
 
 <img src="https://imgur.com/9XwCWA1.png" width="80%">
-
 
 There are four coordinate systems here:  
  1. local coordinate
@@ -159,17 +168,23 @@ There are four coordinate systems here:
 
  <img src="https://imgur.com/fw0Uao4.png" width="80%">
 
- 
-```
-// part of sgl.BasicObj's vertex shader code
-void main()
-{
-	FragPos = vec3(model * vec4(aPos, 1.0));
-	Normal = mat3(transpose(inverse(model))) * aNormal;   
+The usage of sgl.Viewpoint is simple. Just new one with the width and height of the window. Although there's no strong restrictions, all sgl.Object should contain a sgl.Viewpoint to make the object appear in view-space and clip-space coordinate correctly.  
 
-	gl_Position = projection * camera * vec4(FragPos, 1.0);
-}
 ```
+vp := sgl.NewViewpoint(width, height)
+
+cube := sgl.BasicObj{}
+cube.SetProgramVar(sgl.BasicObjProgVar{
+	Red:   1,
+	Green: 0.3,
+	Blue:  0.3,
+	Vp:    &vp,
+	Ls:    &ls,
+	Mt:    &mt,
+})
+```
+
+
 ### LightSource & Material
 sgl.LightSource and agl.Material provides a default light source and default material. These two are essential for those sgl.Object that render the lighting effect, and sgl.BasicObj is of them.  
 
@@ -178,50 +193,44 @@ sgl.LightSource contains 3 attributes: light position, light color and light int
 sgl.Material contains 4 attributes: ambient, diffuse, specular and shininess. Ambient determines what color does the material reflects under ambient lighting; diffuse determines what color does the material reflects under diffuse lighting; specular determines the color of the material's specular highligh; and shininess determines the scattering/radius of the specular highlight.
 
 ```
-// part of sgl.BasicObj's fragment shader code 
-void main()
-{
-	vec3 objectColor = vec3(red, green, blue);
+ls := sgl.NewLightSrc()
+mt := sgl.Material{
+	Ambient: mgl32.Vec3{0.1, 0.1, 0.1},
+	Diffuse: mgl32.Vec3{0.6, 0.6, 0.6},
+	Specular: mgl32.Vec3{1.5, 1.5, 1.5},
+	Shininess: 24,
+}
 
-	// ambient
-	vec3 ambient = lightColor * materialAmbient;
-		
-	// diffuse 
-	vec3 norm = normalize(Normal);
-	vec3 lightDir = normalize(lightPos - FragPos);
-	float diff = max(dot(norm, lightDir), 0.0);
-	vec3 diffuse = (lightIntensity * lightColor) * (diff * materialDiffuse);
-		
-	// specular
-	vec3 viewDir = normalize(viewPos - FragPos);
-	vec3 reflectDir = reflect(-lightDir, norm);  
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), materialShininess);
-	vec3 specular = lightColor * (spec * materialSpecular);    
-		
-	vec3 result = (ambient + diffuse + specular) * objectColor;
-	FragColor = vec4(result, 1.0);
-} 
+newCube := sgl.BasicObj{}
+newCube.SetProgramVar(sgl.BasicObjProgVar{
+	Red:   1,
+	Green: 0.3,
+	Blue:  0.3,
+	Vp:    &vp,
+	Ls:    &ls,
+	Mt:    &mt,
+})
 ```
 
 ### Group
 sgl.Group collects mutiple sgl.Object and make them move together like a bigger object. Besides making sgl.Object move together, sgl.Group can also move any collected sgl.Object individually.  
 
 ```
+// before main loop
 group := sgl.NewGroup()
 group.AddObject("cube1", &cube1)
 
+// in main loop
 group.SetObjectModel("cube1", rotateY.Mul4(
 	mgl32.Rotate3DX(float32(angle)/5).Mat4(),
 ))
 group.SetGroupModel(
 	mgl32.Translate3D(0, float32(tr), 0).Mul4(
-		mgl32.Rotate3DY(float32(angle) / 5).Mat4(),
+		mgl32.Rotate3DY(float32(angle)/5).Mat4(),
 	),
 )
-
 group.Render()
 ```
-
 
 
 ## Examples
