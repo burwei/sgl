@@ -98,6 +98,7 @@ The usage introduction contains the contents below:
  - Viewpoint & Coordinate system
  - LightSource & Material
  - Group
+ - STL
 
 ### OpenGL Program structure
 Modern OpenGL program can be roughly divided into two parts, CPU program and GPU programs.  
@@ -232,6 +233,37 @@ group.SetGroupModel(
 group.Render()
 ```
 
+### STL
+STL is a common file format for 3D models.  
+SimpleGL also provides some APIs to read STL files and turn them into vertex arrays.  
+
+The below shows how to read a STL file and create a object with it.   
+The STL file is download from a free STL platform called cults3d.com, and the link is [here]:(https://cults3d.com/en/3d-model/game/iron-man-bust_by-max7th-kimjh).  
+```
+// free stl source: https://cults3d.com/en/3d-model/game/iron-man-bust_by-max7th-kimjh
+// read binary STL file and shift it to the center
+stlVertices := sgl.ReadBinaryStlFile("ironman_bust_max7th_bin.stl")
+stl := sgl.BasicObj{}
+stl.SetProgramVar(sgl.BasicObjProgVar{
+	Red:   1,
+	Green: 0.3,
+	Blue:  0.3,
+	Vp:    &vp,
+	Ls:    &ls,
+	Mt:    &mt,
+})
+stl.PrepareProgram(true)
+stl.SetVertices(&stlVertices)
+
+// read binary STL file without shifting
+stlVertices := sgl.ReadBinaryStlFileRaw("ironman_bust_max7th_bin.stl")
+
+// read binary STL file and shift it to a specific center
+stlVertices := sgl.ReadBinaryStlFileWithCenter("ironman_bust_max7th_bin.stl", 50, 100, 20)
+```
+result:  
+https://i.imgur.com/M2sSHD8.gif
+<img src="https://imgur.com/M2sSHD8.gif" width="60%">
 
 ## Examples
 For more examples, see the example folder.

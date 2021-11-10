@@ -23,22 +23,22 @@ func main() {
 	mt := sgl.NewMaterial()
 
 	// free stl source: https://cults3d.com/en/3d-model/game/iron-man-bust_by-max7th-kimjh
-	stlVertices := sgl.ReadBinaryStlFile("ironman_bust_max7th_bin.stl", 0, 10000)
+	stlVertices := sgl.ReadBinaryStlFile("ironman_bust_max7th_bin.stl")
 	stl := sgl.BasicObj{}
 	stl.SetProgramVar(sgl.BasicObjProgVar{
-		Red: 1,
+		Red:   1,
 		Green: 0.3,
-		Blue: 0.3,
-		Vp: &vp,
-		Ls: &ls,
-		Mt: &mt,
+		Blue:  0.3,
+		Vp:    &vp,
+		Ls:    &ls,
+		Mt:    &mt,
 	})
 	stl.PrepareProgram(true)
 	stl.SetVertices(&stlVertices)
 
 	angle := 0.0
 	previousTime := glfw.GetTime()
-	rotateY := mgl32.Rotate3DY(-math.Pi / 6).Mat4()
+	rotateX := mgl32.Rotate3DX(-math.Pi / 2).Mat4()
 
 	sgl.BeforeMainLoop(window, &vp)
 	for !window.ShouldClose() {
@@ -49,8 +49,8 @@ func main() {
 		elapsed := time - previousTime
 		previousTime = time
 		angle += elapsed
-		stl.SetModel(rotateY.Mul4(
-			mgl32.Rotate3DX(float32(angle)/5).Mat4(),
+		stl.SetModel(rotateX.Mul4(
+			mgl32.Rotate3DZ(float32(angle) / 3).Mat4(),
 		))
 
 		// Render

@@ -1,5 +1,17 @@
 package simplegl
 
+func NewPlane(l float32) *[]float32{
+	return &[]float32{
+		//  X, Y, Z
+		-l/2, 0, -l/2,
+		-l/2, 0, l/2,
+		l/2, 0, -l/2,
+		l/2, 0, -l/2,
+		-l/2, 0, l/2,
+		l/2, 0, l/2,
+	}
+}
+
 // NewSimpleCube will return vertices of a cube with side length l.
 func NewCube(l float32) *[]float32{
 	return &[]float32{

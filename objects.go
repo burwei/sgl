@@ -118,10 +118,6 @@ func (obj *BasicNoLightObj) BindProgramVar(program uint32) {
 	obj.uni["red"] = gl.GetUniformLocation(obj.program, gl.Str("red\x00"))
 	obj.uni["green"] = gl.GetUniformLocation(obj.program, gl.Str("green\x00"))
 	obj.uni["blue"] = gl.GetUniformLocation(obj.program, gl.Str("blue\x00"))
-
-	gl.UniformMatrix4fv(obj.uni["project"], 1, false, &(obj.progVar.Vp.Projection[0]))
-	gl.UniformMatrix4fv(obj.uni["camera"], 1, false, &(obj.progVar.Vp.Camera[0]))
-	gl.UniformMatrix4fv(obj.uni["model"], 1, false, &obj.model[0])
 	gl.BindFragDataLocation(obj.program, 0, gl.Str("outputColor\x00"))
 }
 
@@ -307,21 +303,6 @@ func (obj *BasicObj) BindProgramVar(program uint32) {
 	obj.uni["materialDiffuse"] = gl.GetUniformLocation(obj.program, gl.Str("materialDiffuse\x00"))
 	obj.uni["materialSpecular"] = gl.GetUniformLocation(obj.program, gl.Str("materialSpecular\x00"))
 	obj.uni["materialShininess"] = gl.GetUniformLocation(obj.program, gl.Str("materialShininess\x00"))
-
-	gl.UniformMatrix4fv(obj.uni["project"], 1, false, &(obj.progVar.Vp.Projection[0]))
-	gl.UniformMatrix4fv(obj.uni["camera"], 1, false, &(obj.progVar.Vp.Camera[0]))
-	gl.UniformMatrix4fv(obj.uni["model"], 1, false, &obj.model[0])
-	gl.Uniform3fv(obj.uni["lightPos"], 1, &(obj.progVar.Ls.Pos[0]))
-	gl.Uniform3fv(obj.uni["lightColor"], 1, &(obj.progVar.Ls.Color[0]))
-	gl.Uniform3fv(obj.uni["viewPos"], 1, &(obj.progVar.Vp.Eye[0]))
-	gl.Uniform1f(obj.uni["lightIntensity"], obj.progVar.Ls.Intensity)
-	gl.Uniform1f(obj.uni["red"], obj.progVar.Red)
-	gl.Uniform1f(obj.uni["green"], obj.progVar.Green)
-	gl.Uniform1f(obj.uni["blue"], obj.progVar.Blue)
-	gl.Uniform3fv(obj.uni["materialAmbient"], 1, &(obj.progVar.Mt.Ambient[0]))
-	gl.Uniform3fv(obj.uni["materialDiffuse"], 1, &(obj.progVar.Mt.Diffuse[0]))
-	gl.Uniform3fv(obj.uni["materialSpecular"],1, &(obj.progVar.Mt.Specular[0]))
-	gl.Uniform1f(obj.uni["materialShininess"], obj.progVar.Mt.Shininess)
 	gl.BindFragDataLocation(obj.program, 0, gl.Str("outputColor\x00"))
 }
 
@@ -549,11 +530,6 @@ func (obj *BasicTexObj) BindProgramVar(program uint32) {
 	obj.uni["camera"] = gl.GetUniformLocation(obj.program, gl.Str("camera\x00"))
 	obj.uni["model"] = gl.GetUniformLocation(obj.program, gl.Str("model\x00"))
 	obj.uni["tex"] = gl.GetUniformLocation(obj.program, gl.Str("tex\x00"))
-
-	gl.UniformMatrix4fv(obj.uni["project"], 1, false, &(obj.progVar.Vp.Projection[0]))
-	gl.UniformMatrix4fv(obj.uni["camera"], 1, false, &(obj.progVar.Vp.Camera[0]))
-	gl.UniformMatrix4fv(obj.uni["model"], 1, false, &obj.model[0])
-	gl.Uniform1i(obj.uni["tex"], 0)
 	gl.BindFragDataLocation(obj.program, 0, gl.Str("outputColor\x00"))
 }
 
