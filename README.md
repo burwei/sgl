@@ -238,7 +238,7 @@ STL is a common file format for 3D models.
 SimpleGL also provides some APIs to read STL files and turn them into vertex arrays.  
 
 The below shows how to read a STL file and create a object with it.   
-The STL file is download from a free STL platform called cults3d.com, and the link is [here]:(https://cults3d.com/en/3d-model/game/iron-man-bust_by-max7th-kimjh).  
+The STL file is download from a free STL platform called cults3d.com, and the link is [here](https://cults3d.com/en/3d-model/game/iron-man-bust_by-max7th-kimjh).  
 ```
 // free stl source: https://cults3d.com/en/3d-model/game/iron-man-bust_by-max7th-kimjh
 // read binary STL file and shift it to the center
@@ -262,7 +262,6 @@ stlVertices := sgl.ReadBinaryStlFileRaw("ironman_bust_max7th_bin.stl")
 stlVertices := sgl.ReadBinaryStlFileWithCenter("ironman_bust_max7th_bin.stl", 50, 100, 20)
 ```
 result:  
-https://i.imgur.com/M2sSHD8.gif
 <img src="https://imgur.com/M2sSHD8.gif" width="60%">
 
 ## Examples
