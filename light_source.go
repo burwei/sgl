@@ -1,10 +1,10 @@
-package simplegl
+package sgl
 
 import "github.com/go-gl/mathgl/mgl32"
 
 type LightSrc struct {
-	Pos   mgl32.Vec3
-	Color mgl32.Vec3
+	Pos       mgl32.Vec3
+	Color     mgl32.Vec3
 	Intensity float32
 }
 

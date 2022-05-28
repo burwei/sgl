@@ -15,7 +15,7 @@ It could be seen as a lightweight wrapper just to simplify the OpenGL routines a
 
 ## Installation
 ```
-go get github.com/burwei/simplegl
+go get github.com/burwei/sgl
 ```
 
 ## Quick Start
@@ -27,7 +27,7 @@ package main
 import (
 	"math"
 
-	sgl "github.com/burwei/simplegl"
+	"github.com/burwei/sgl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 )

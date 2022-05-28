@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	sgl "github.com/burwei/simplegl"
+	"github.com/burwei/sgl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 )
@@ -22,9 +22,9 @@ func main() {
 	vp := sgl.NewViewpoint(width, height)
 	ls := sgl.NewLightSrc()
 	mt := sgl.Material{
-		Ambient: mgl32.Vec3{0.1, 0.1, 0.1},
-		Diffuse: mgl32.Vec3{0.6, 0.6, 0.6},
-		Specular: mgl32.Vec3{1.5, 1.5, 1.5},
+		Ambient:   mgl32.Vec3{0.1, 0.1, 0.1},
+		Diffuse:   mgl32.Vec3{0.6, 0.6, 0.6},
+		Specular:  mgl32.Vec3{1.5, 1.5, 1.5},
 		Shininess: 24,
 	}
 

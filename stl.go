@@ -1,4 +1,4 @@
-package simplegl
+package sgl
 
 import (
 	"encoding/binary"

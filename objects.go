@@ -1,4 +1,4 @@
-package simplegl
+package sgl
 
 import (
 	"fmt"
@@ -377,7 +377,7 @@ func (obj *BasicObj) Render() {
 	gl.Uniform1f(obj.uni["blue"], obj.progVar.Blue)
 	gl.Uniform3fv(obj.uni["materialAmbient"], 1, &(obj.progVar.Mt.Ambient[0]))
 	gl.Uniform3fv(obj.uni["materialDiffuse"], 1, &(obj.progVar.Mt.Diffuse[0]))
-	gl.Uniform3fv(obj.uni["materialSpecular"],1, &(obj.progVar.Mt.Specular[0]))
+	gl.Uniform3fv(obj.uni["materialSpecular"], 1, &(obj.progVar.Mt.Specular[0]))
 	gl.Uniform1f(obj.uni["materialShininess"], obj.progVar.Mt.Shininess)
 	gl.BindVertexArray(obj.vao)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(*obj.vertices)/6)) // 6: X,Y,Z,NX,NY,NZ

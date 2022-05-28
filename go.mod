@@ -1,4 +1,4 @@
-module github.com/burwei/simplegl
+module github.com/burwei/sgl
 
 go 1.15
 

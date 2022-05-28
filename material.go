@@ -1,4 +1,4 @@
-package simplegl
+package sgl
 
 import "github.com/go-gl/mathgl/mgl32"
 
