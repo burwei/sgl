@@ -82,10 +82,6 @@ func ReadBinaryStlFile(file string) []float32 {
 		vertices = append(vertices, triangles[i].Vert3[0]-centerX)
 		vertices = append(vertices, triangles[i].Vert3[1]-centerY)
 		vertices = append(vertices, triangles[i].Vert3[2]-centerZ)
-		// fmt.Printf("vert1: ( %.2f, %.2f, %.2f )\n",triangles[i].Vert1[0],triangles[i].Vert1[1],triangles[i].Vert1[2])
-		// fmt.Printf("vert2: ( %.2f, %.2f, %.2f )\n",triangles[i].Vert2[0],triangles[i].Vert2[1],triangles[i].Vert2[2])
-		// fmt.Printf("vert3: ( %.2f, %.2f, %.2f )\n",triangles[i].Vert3[0],triangles[i].Vert3[1],triangles[i].Vert3[2])
-		// fmt.Printf("normal: ( %.2f, %.2f, %.2f )\n",triangles[i].Normal[0],triangles[i].Normal[1],triangles[i].Normal[2])
 	}
 	return vertices
 }

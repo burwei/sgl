@@ -2,6 +2,7 @@ package sgl
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"runtime"
 	"strings"
@@ -102,6 +103,24 @@ func MakeProgram(vertexShaderSource, fragmentShaderSource string) uint32 {
 	gl.UseProgram(program)
 
 	return program
+}
+
+func MakeProgramFromFile(vertPath string, fragPath string) uint32 {
+	b, err := ioutil.ReadFile(vertPath)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	vShader := fmt.Sprintf("%s\x00", string(b))
+
+	b, err = ioutil.ReadFile(fragPath)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	fShader := fmt.Sprintf("%s\x00", string(b))
+
+	return MakeProgram(vShader, fShader)
 }
 
 func BeforeMainLoop(window *glfw.Window, vp *Viewpoint) {

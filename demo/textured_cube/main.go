@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/burwei/sgl"
+	"github.com/burwei/sgl/demo/textured_cube/objects"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 )
@@ -21,13 +22,14 @@ func main() {
 
 	vp := sgl.NewViewpoint(width, height)
 
-	cube := sgl.BasicTexObj{}
-	cube.SetProgramVar(sgl.BasicTexObjProgVar{
+	cube := objects.NewTexCubeObj()
+	cube.BuildProgramFromFile("./objects/tex_cube_obj.vert", "./objects/tex_cube_obj.frag")
+	cube.BindProgramVar(objects.TexCubeObjProgVar{
 		TextureSrc: "wood.png",
 		Vp:         &vp,
 	})
-	cube.PrepareProgram(true)
-	cube.SetVertices(sgl.NewUniTexCube(200))
+	cube.BuildVaoFromVertices(sgl.NewUniTexCube(200))
+	cube.SetModelPos(0, 0, 0)
 
 	angle := 0.0
 	previousTime := glfw.GetTime()
