@@ -50,8 +50,8 @@ func main() {
 	ls := sgl.NewLightSrc()
 	mt := sgl.NewMaterial()
 
-	cube := sgl.BasicObj{}
-	cube.SetProgramVar(sgl.BasicObjProgVar{
+	cube := sgl.NewSimpleObj()
+	cube.SetProgVar(sgl.SimpleObjVar{
 		Red:   1,
 		Green: 0.3,
 		Blue:  0.3,
@@ -59,8 +59,8 @@ func main() {
 		Ls:    &ls,
 		Mt:    &mt,
 	})
-	cube.PrepareProgram(true)
 	cube.SetVertices(sgl.NewCube(200))
+	cube.SetModel(mgl32.Translate3D(0, 0, 0))
 
 	angle := 0.0
 	previousTime := glfw.GetTime()
@@ -111,7 +111,7 @@ The CPU program contains two parts, setup and main loop.
 In setup part we call ```sgl.Init()```, which will lock the current thread and init OpenGL and GLFW. GLFW is the library that handles the graphics output and device input, such as window, keyboard, mouse, joystick and so on. Variable assignment, input callback settings and all things we should prepared before starting the main loop will be in the setup part.  
 The main loop is the ```for !window.ShouldClose() {}``` loop. We render the objects in main loop. Before and after the rendering, we call ```sgl.BeforeDrawing()``` and ```sgl.AfterDrawing()``` to clean, swap buffers and poll events.  
 
-The GPU programs contains also two parts, Program Object and shaders. Program Object is used in render operation and it's also the "Program" that SimpleGL refers to when calling APIs like ```sgl.Object.PrepareProgram()``` and ```slg.ObjectSetProgramVar()``` and so on. SimpleGL sees each Program Object as a final all-in-one program for each sgl.Object, so all varialbes of shaders attached to the Program Object are also seen as the variables of the "Program". Shaders are written in GLSL, and are used to determine how to draw the vertices.   
+The GPU programs contains also two parts, Program Object and shaders. Program Object is used in render operation and it's also the "Program" that SimpleGL refers to when calling APIs like ```sgl.MakeProgram()``` and ```slg.SetProgVar()``` and so on. SimpleGL sees each Program Object as a final all-in-one program for each sgl.Object, so all varialbes of shaders attached to the Program Object are also seen as the variables of the "Program". Shaders are written in GLSL, and are used to determine how to draw the vertices.   
 One Program Object can combine multiple shaders to do the rendering job, but we only attach a vertex shader and a fragment shader on it in SimpleGL (so far). Vertex shader calculates the positions of vertices and fragment shader calculates the colors of fragments.   
 
 The above is just a simplified introduction. To know more about how OpenGL works, see [OpenGL rendering pipeline overview](https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview).  
@@ -121,14 +121,14 @@ sgl.Object is an interface that represents a object with a specific Project Obje
 
 sgl.Object + program variables + vertex array = visuable object  
 
-sgl.BasicObj is the object with basic lighting, and it's able to draw any shape (any vertex array that contains 3*n float32 values). Developers can implement their own sgl.Object to create some cool objects. By implement sgl.Object, the object could be more easiy to use and be able to move together as a group.
+sgl.SimpleObj is the object with basic lighting, and it's able to draw any shape (any vertex array that contains 3*n float32 values). Developers can implement their own sgl.Object to create some cool objects. By implement sgl.Object, the object could be more easiy to use and be able to move together as a group.
 
 ```
-// create a sgl.Object
-cube := sgl.BasicObj{}
+// create a sgl.Object with its program
+cube := sgl.NewSimpleObj()
 
-// set shader program variables
-cube.SetProgramVar(sgl.BasicObjProgVar{
+// set shader program variables and bind them to the program
+cube.SetProgVar(sgl.SimpleObjVar{
 	Red:   1,
 	Green: 0.3,
 	Blue:  0.3,
@@ -137,11 +137,12 @@ cube.SetProgramVar(sgl.BasicObjProgVar{
 	Mt:    &mt,
 })
 
-// produce the shader program and bind the program variables with it
-cube.PrepareProgram(true)
-
 // set the vetex array
 cube.SetVertices(sgl.NewCube(200))
+
+// set the initial position and rotation of the object
+// we set the posisition to (0, 0, 0) without any rotation
+cube.SetModel(mgl32.Translate3D(0, 0, 0))
 
 // render the object (in main loop)
 cube.Render()
@@ -178,8 +179,8 @@ The usage of sgl.Viewpoint is simple. Just new one with the width and height of 
 ```
 vp := sgl.NewViewpoint(width, height)
 
-cube := sgl.BasicObj{}
-cube.SetProgramVar(sgl.BasicObjProgVar{
+cube := sgl.NewSimpleObj()
+cube.SetProgVar(sgl.SimpleObjVar{
 	Red:   1,
 	Green: 0.3,
 	Blue:  0.3,
@@ -206,8 +207,8 @@ mt := sgl.Material{
 	Shininess: 24,
 }
 
-newCube := sgl.BasicObj{}
-newCube.SetProgramVar(sgl.BasicObjProgVar{
+cube := sgl.NewSimpleObj()
+cube.SetProgVar(sgl.SimpleObjVar{
 	Red:   1,
 	Green: 0.3,
 	Blue:  0.3,
@@ -247,17 +248,11 @@ The STL file is download from a free STL platform called cults3d.com, and the li
 // free stl source: https://cults3d.com/en/3d-model/game/iron-man-bust_by-max7th-kimjh
 // read binary STL file and shift it to the center
 stlVertices := sgl.ReadBinaryStlFile("ironman_bust_max7th_bin.stl")
-stl := sgl.BasicObj{}
-stl.SetProgramVar(sgl.BasicObjProgVar{
-	Red:   1,
-	Green: 0.3,
-	Blue:  0.3,
-	Vp:    &vp,
-	Ls:    &ls,
-	Mt:    &mt,
-})
-stl.PrepareProgram(true)
+stl := sgl.NewBaseObj()
+stl.SetProgVar(sgl.BaseObjVar{Vp: &vp})
 stl.SetVertices(&stlVertices)
+stl.SetModel(mgl32.Translate3D(0, 0, 0))
+	
 
 // read binary STL file without shifting
 stlVertices := sgl.ReadBinaryStlFileRaw("ironman_bust_max7th_bin.stl")
