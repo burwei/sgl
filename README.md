@@ -2,6 +2,9 @@
 SimpleGL is a simple Go wrapper for modern OpenGL.   
 It's a pure Go repo and is fully compatible with go-gl ecosystem.  
 
+## NOTICE
+This package is still in early stages and might have incompatible updates!   
+
 <img src="https://imgur.com/JX65X3U.gif" width="100%">
 
 
@@ -12,6 +15,7 @@ SimpleGL uses the packages below:
 
 SimpleGL provides Object, Group, Viewpoint, LightSource, some common shapes and some routine functions to make modern OpenGL development more easily and fast.  
 It could be seen as a lightweight wrapper just to simplify the OpenGL routines and organize the code, so developers can get rid of those verbose routines and focus on shaders, vertices and business logics.  
+
 
 ## Installation
 ```
