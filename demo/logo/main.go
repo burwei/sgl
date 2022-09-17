@@ -5,9 +5,10 @@ import (
 	"math"
 
 	"github.com/burwei/sgl"
-	"github.com/burwei/sgl/demo/simplegl_demo/objects"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
+
+	"github.com/burwei/sgl/demo/logo/objects"
 )
 
 const (
@@ -191,9 +192,9 @@ func main() {
 	}
 	group := sgl.NewGroup()
 	for i, v := range pos {
-		cube := objects.NewSimpleObj()
+		cube := &objects.SimpleObj{}
 		cube.SetProgram(program)
-		cube.BindProgramVar(objects.SimpleObjProgVar{
+		cube.SetProgVar(objects.SimpleObjProgVar{
 			Red:   1,
 			Green: 0.3,
 			Blue:  0.3,
@@ -201,8 +202,8 @@ func main() {
 			Ls:    &ls,
 			Mt:    &mt,
 		})
-		cube.BuildVaoFromVertices(sgl.NewCube(20))
-		cube.SetModelPos(v[0], v[1], v[2])
+		cube.SetVertices(sgl.NewCube(20))
+		cube.SetModel(mgl32.Translate3D(v[0], v[1], v[2]))
 		group.AddObject(fmt.Sprintf("cube%v", i), cube)
 	}
 

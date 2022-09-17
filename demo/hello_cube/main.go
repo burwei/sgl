@@ -4,9 +4,10 @@ import (
 	"math"
 
 	"github.com/burwei/sgl"
-	"github.com/burwei/sgl/demo/hello_cube/objects"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
+
+	"github.com/burwei/sgl/demo/hello_cube/objects"
 )
 
 const (
@@ -24,8 +25,7 @@ func main() {
 	mt := sgl.NewMaterial()
 
 	cube := objects.NewSimpleObj()
-	cube.BuildProgramFromFile("./objects/simpleobj.vert", "./objects/simpleobj.frag")
-	cube.BindProgramVar(objects.SimpleObjProgVar{
+	cube.SetProgVar(objects.SimpleObjProgVar{
 		Red:   1,
 		Green: 0.3,
 		Blue:  0.3,
@@ -33,8 +33,8 @@ func main() {
 		Ls:    &ls,
 		Mt:    &mt,
 	})
-	cube.BuildVaoFromVertices(sgl.NewCube(200))
-	cube.SetModelPos(0, 0, 0)
+	cube.SetVertices(sgl.NewCube(200))
+	cube.SetModel(mgl32.Translate3D(0, 0, 0))
 
 	angle := 0.0
 	previousTime := glfw.GetTime()

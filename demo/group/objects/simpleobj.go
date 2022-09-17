@@ -20,10 +20,13 @@ type SimpleObjProgVar struct {
 }
 
 func NewSimpleObj() sgl.Object {
-	return &SimpleObj{}
+	obj := &SimpleObj{}
+	obj.SetProgram(sgl.MakeProgramFromFile("./objects/simpleobj.vert", "./objects/simpleobj.frag"))
+
+	return obj
 }
 
-func (obj *SimpleObj) BindProgramVar(progVar interface{}) {
+func (obj *SimpleObj) SetProgVar(progVar interface{}) {
 	if pv, ok := progVar.(SimpleObjProgVar); ok {
 		obj.progVar = pv
 	} else {
@@ -49,7 +52,7 @@ func (obj *SimpleObj) BindProgramVar(progVar interface{}) {
 	gl.BindFragDataLocation(obj.Program, 0, gl.Str("outputColor\x00"))
 }
 
-func (obj *SimpleObj) BuildVaoFromVertices(vertices *[]float32) {
+func (obj *SimpleObj) SetVertices(vertices *[]float32) {
 	newVertices := sgl.AddNormal(*vertices)
 	obj.Vertices = &newVertices
 
