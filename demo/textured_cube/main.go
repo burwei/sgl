@@ -1,9 +1,11 @@
 package main
 
 import (
+	_ "image/png"
 	"math"
 
-	sgl "github.com/burwei/simplegl"
+	"github.com/burwei/sgl"
+	"github.com/burwei/sgl/demo/textured_cube/objects"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 )
@@ -19,22 +21,14 @@ func main() {
 	defer sgl.Terminate()
 
 	vp := sgl.NewViewpoint(width, height)
-	ls := sgl.NewLightSrc()
-	mt := sgl.NewMaterial()
 
-	// free stl source: https://cults3d.com/en/3d-model/game/iron-man-bust_by-max7th-kimjh
-	stlVertices := sgl.ReadBinaryStlFile("ironman_bust_max7th_bin.stl", 0, 10000)
-	stl := sgl.BasicObj{}
-	stl.SetProgramVar(sgl.BasicObjProgVar{
-		Red: 1,
-		Green: 0.3,
-		Blue: 0.3,
-		Vp: &vp,
-		Ls: &ls,
-		Mt: &mt,
+	cube := objects.NewTexCubeObj()
+	cube.SetProgVar(objects.TexCubeObjVar{
+		TextureSrc: "wood.png",
+		Vp:         &vp,
 	})
-	stl.PrepareProgram(true)
-	stl.SetVertices(&stlVertices)
+	cube.SetVertices(sgl.NewUniTexCube(200))
+	cube.SetModel(mgl32.Translate3D(0, 0, 0))
 
 	angle := 0.0
 	previousTime := glfw.GetTime()
@@ -49,12 +43,12 @@ func main() {
 		elapsed := time - previousTime
 		previousTime = time
 		angle += elapsed
-		stl.SetModel(rotateY.Mul4(
-			mgl32.Rotate3DX(float32(angle)/5).Mat4(),
+		cube.SetModel(rotateY.Mul4(
+			mgl32.Rotate3DX(float32(angle) / 5).Mat4(),
 		))
 
 		// Render
-		stl.Render()
+		cube.Render()
 
 		sgl.AfterDrawing(window)
 	}

@@ -1,7 +1,8 @@
-package simplegl
+package sgl
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"runtime"
 	"strings"
@@ -11,13 +12,13 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 )
 
-func Init(windowWidth int, windowHeight int, windowTitle string) *glfw.Window{
+func Init(windowWidth int, windowHeight int, windowTitle string) *glfw.Window {
 	runtime.LockOSThread()
 	window := InitGlfwAndOpenGL(windowWidth, windowHeight, windowTitle)
 	return window
 }
 
-func Terminate(){
+func Terminate() {
 	glfw.Terminate()
 }
 
@@ -104,13 +105,31 @@ func MakeProgram(vertexShaderSource, fragmentShaderSource string) uint32 {
 	return program
 }
 
+func MakeProgramFromFile(vertPath string, fragPath string) uint32 {
+	b, err := ioutil.ReadFile(vertPath)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	vShader := fmt.Sprintf("%s\x00", string(b))
+
+	b, err = ioutil.ReadFile(fragPath)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	fShader := fmt.Sprintf("%s\x00", string(b))
+
+	return MakeProgram(vShader, fShader)
+}
+
 func BeforeMainLoop(window *glfw.Window, vp *Viewpoint) {
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
 	keyCallback := glfw.KeyCallback(func(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 		// capture only Press and Repeat actions
-		if action == glfw.Release{
+		if action == glfw.Release {
 			return
 		}
 		switch key {
@@ -141,17 +160,17 @@ func BeforeMainLoop(window *glfw.Window, vp *Viewpoint) {
 	scrollCallback := glfw.ScrollCallback(func(w *glfw.Window, xpos, ypos float64) {
 		forwardVec := vp.Target.Sub(vp.Eye).Mul(0.005)
 		leftVec := vp.Top.Cross(forwardVec).Mul(2)
-		forwardX := forwardVec[0]*float32(ypos)
-		forwardY := forwardVec[1]*float32(ypos)
-		forwardZ := forwardVec[2]*float32(ypos)
+		forwardX := forwardVec[0] * float32(ypos)
+		forwardY := forwardVec[1] * float32(ypos)
+		forwardZ := forwardVec[2] * float32(ypos)
 		vp.Eye = mgl32.Vec3{
-			vp.Eye[0] + forwardX, 
-			vp.Eye[1] + forwardY, 
+			vp.Eye[0] + forwardX,
+			vp.Eye[1] + forwardY,
 			vp.Eye[2] + forwardZ,
 		}
 		vp.Target = mgl32.Vec3{
-			vp.Target[0] + float32(xpos)*leftVec[0] + forwardX, 
-			vp.Target[1] + float32(xpos)*leftVec[1] + forwardY, 
+			vp.Target[0] + float32(xpos)*leftVec[0] + forwardX,
+			vp.Target[1] + float32(xpos)*leftVec[1] + forwardY,
 			vp.Target[2] + float32(xpos)*leftVec[2] + forwardZ,
 		}
 		vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	sgl "github.com/burwei/simplegl"
+	"github.com/burwei/sgl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 )
@@ -22,14 +22,13 @@ func main() {
 	vp := sgl.NewViewpoint(width, height)
 	ls := sgl.NewLightSrc()
 	mt := sgl.Material{
-		Ambient: mgl32.Vec3{0.1, 0.1, 0.1},
-		Diffuse: mgl32.Vec3{0.6, 0.6, 0.6},
-		Specular: mgl32.Vec3{1.5, 1.5, 1.5},
+		Ambient:   mgl32.Vec3{0.1, 0.1, 0.1},
+		Diffuse:   mgl32.Vec3{0.6, 0.6, 0.6},
+		Specular:  mgl32.Vec3{1.5, 1.5, 1.5},
 		Shininess: 24,
 	}
 
-	emptyCube := sgl.BasicObj{}
-	emptyCube.PrepareProgram(false)
+	program := sgl.NewSimpleObj().GetProgram()
 
 	pos := [][]float32{
 		// S
@@ -191,8 +190,9 @@ func main() {
 	}
 	group := sgl.NewGroup()
 	for i, v := range pos {
-		newCube := sgl.BasicObj{}
-		newCube.SetProgramVar(sgl.BasicObjProgVar{
+		cube := &sgl.SimpleObj{}
+		cube.SetProgram(program)
+		cube.SetProgVar(sgl.SimpleObjVar{
 			Red:   1,
 			Green: 0.3,
 			Blue:  0.3,
@@ -200,12 +200,9 @@ func main() {
 			Ls:    &ls,
 			Mt:    &mt,
 		})
-		newCube.BindProgramVar(emptyCube.GetProgram())
-		newCube.SetVertices(sgl.NewCube(20))
-		newCube.SetModel(
-			mgl32.Translate3D(v[0], v[1], v[2]),
-		)
-		group.AddObject(fmt.Sprintf("cube%v", i), &newCube)
+		cube.SetVertices(sgl.NewCube(20))
+		cube.SetModel(mgl32.Translate3D(v[0], v[1], v[2]))
+		group.AddObject(fmt.Sprintf("cube%v", i), cube)
 	}
 
 	angle := 0.0
