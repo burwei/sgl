@@ -23,13 +23,12 @@ func main() {
 	vp := sgl.NewViewpoint(width, height)
 
 	cube := objects.NewTexCubeObj()
-	cube.BuildProgramFromFile("./objects/tex_cube_obj.vert", "./objects/tex_cube_obj.frag")
-	cube.BindProgramVar(objects.TexCubeObjProgVar{
+	cube.SetProgVar(objects.TexCubeObjVar{
 		TextureSrc: "wood.png",
 		Vp:         &vp,
 	})
-	cube.BuildVaoFromVertices(sgl.NewUniTexCube(200))
-	cube.SetModelPos(0, 0, 0)
+	cube.SetVertices(sgl.NewUniTexCube(200))
+	cube.SetModel(mgl32.Translate3D(0, 0, 0))
 
 	angle := 0.0
 	previousTime := glfw.GetTime()

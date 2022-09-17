@@ -6,8 +6,6 @@ import (
 	"github.com/burwei/sgl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
-
-	"github.com/burwei/sgl/demo/hello_cube/objects"
 )
 
 const (
@@ -24,8 +22,8 @@ func main() {
 	ls := sgl.NewLightSrc()
 	mt := sgl.NewMaterial()
 
-	cube := objects.NewSimpleObj()
-	cube.SetProgVar(objects.SimpleObjProgVar{
+	cube := sgl.NewSimpleObj()
+	cube.SetProgVar(sgl.SimpleObjVar{
 		Red:   1,
 		Green: 0.3,
 		Blue:  0.3,

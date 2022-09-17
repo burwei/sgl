@@ -10,23 +10,26 @@ import (
 	"github.com/go-gl/gl/all-core/gl"
 )
 
-type TexCubeObj struct {
-	progVar TexCubeObjProgVar
-	texture uint32
-	sgl.BaseObj
-}
-
-type TexCubeObjProgVar struct {
+type TexCubeObjVar struct {
 	TextureSrc string
 	Vp         *sgl.Viewpoint
 }
 
-func NewTexCubeObj() sgl.Object {
-	return &TexCubeObj{}
+type TexCubeObj struct {
+	progVar TexCubeObjVar
+	texture uint32
+	sgl.BaseObj
 }
 
-func (obj *TexCubeObj) BindProgramVar(progVar interface{}) {
-	if pv, ok := progVar.(TexCubeObjProgVar); ok {
+func NewTexCubeObj() sgl.Object {
+	obj := &TexCubeObj{}
+	obj.SetProgram(sgl.MakeProgramFromFile("./objects/tex_cube_obj.vert", "./objects/tex_cube_obj.frag"))
+
+	return obj
+}
+
+func (obj *TexCubeObj) SetProgVar(progVar interface{}) {
+	if pv, ok := progVar.(TexCubeObjVar); ok {
 		obj.progVar = pv
 	} else {
 		panic("progVar is not a TexCubeObjProgVar")
@@ -43,7 +46,7 @@ func (obj *TexCubeObj) BindProgramVar(progVar interface{}) {
 	gl.BindFragDataLocation(obj.Program, 0, gl.Str("outputColor\x00"))
 }
 
-func (obj *TexCubeObj) BuildVaoFromVertices(vertices *[]float32) {
+func (obj *TexCubeObj) SetVertices(vertices *[]float32) {
 	obj.Vertices = vertices
 
 	var vao uint32

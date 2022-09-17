@@ -7,8 +7,6 @@ import (
 	"github.com/burwei/sgl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
-
-	"github.com/burwei/sgl/demo/logo/objects"
 )
 
 const (
@@ -30,7 +28,7 @@ func main() {
 		Shininess: 24,
 	}
 
-	program := sgl.MakeProgramFromFile("./objects/simpleobj.vert", "./objects/simpleobj.frag")
+	program := sgl.NewSimpleObj().GetProgram()
 
 	pos := [][]float32{
 		// S
@@ -192,9 +190,9 @@ func main() {
 	}
 	group := sgl.NewGroup()
 	for i, v := range pos {
-		cube := &objects.SimpleObj{}
+		cube := &sgl.SimpleObj{}
 		cube.SetProgram(program)
-		cube.SetProgVar(objects.SimpleObjProgVar{
+		cube.SetProgVar(sgl.SimpleObjVar{
 			Red:   1,
 			Green: 0.3,
 			Blue:  0.3,

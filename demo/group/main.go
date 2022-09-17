@@ -5,7 +5,6 @@ import (
 	"math"
 
 	"github.com/burwei/sgl"
-	"github.com/burwei/sgl/demo/group/objects"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 )
@@ -24,9 +23,8 @@ func main() {
 	ls := sgl.NewLightSrc()
 	mt := sgl.NewMaterial()
 
-	cube1 := objects.NewSimpleObj()
-	cube1.BuildProgramFromFile("./objects/simpleobj.vert", "./objects/simpleobj.frag")
-	cube1.BindProgramVar(objects.SimpleObjProgVar{
+	cube1 := sgl.NewSimpleObj()
+	cube1.SetProgVar(sgl.SimpleObjVar{
 		Red:   1,
 		Green: 0.3,
 		Blue:  0.3,
@@ -34,16 +32,21 @@ func main() {
 		Ls:    &ls,
 		Mt:    &mt,
 	})
-	cube1.BuildVaoFromVertices(sgl.NewCube(200))
-	cube1.SetModelPos(0, 0, 0)
+	cube1.SetVertices(sgl.NewCube(200))
+	cube1.SetModel(mgl32.Translate3D(0, 0, 0))
 
-	cube2 := objects.NewTexCubeObj()
-	cube2.BuildProgramFromFile("./objects/tex_cube_obj.vert", "./objects/tex_cube_obj.frag")
-	cube2.BindProgramVar(objects.TexCubeObjProgVar{
-		TextureSrc: "wood.png",
-		Vp:         &vp,
+	cube2 := &sgl.SimpleObj{}
+	cube2.SetProgram(cube1.GetProgram())
+	cube2.SetProgVar(sgl.SimpleObjVar{
+		Red:   0.3,
+		Green: 1.0,
+		Blue:  0.3,
+		Vp:    &vp,
+		Ls:    &ls,
+		Mt:    &mt,
 	})
-	cube2.BuildVaoFromVertices(sgl.NewUniTexCube(100))
+	cube2.SetVertices(sgl.NewCube(100))
+	cube2.SetModel(mgl32.Translate3D(0, 0, 0))
 
 	group := sgl.NewGroup()
 	group.AddObject("cube1", cube1)

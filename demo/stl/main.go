@@ -19,22 +19,13 @@ func main() {
 	defer sgl.Terminate()
 
 	vp := sgl.NewViewpoint(width, height)
-	ls := sgl.NewLightSrc()
-	mt := sgl.NewMaterial()
 
 	// free stl source: https://cults3d.com/en/3d-model/game/iron-man-bust_by-max7th-kimjh
 	stlVertices := sgl.ReadBinaryStlFile("ironman_bust_max7th_bin.stl")
-	stl := sgl.BasicObj{}
-	stl.SetProgramVar(sgl.BasicObjProgVar{
-		Red:   1,
-		Green: 0.3,
-		Blue:  0.3,
-		Vp:    &vp,
-		Ls:    &ls,
-		Mt:    &mt,
-	})
-	stl.PrepareProgram(true)
+	stl := sgl.NewBaseObj()
+	stl.SetProgVar(sgl.BaseObjVar{Vp: &vp})
 	stl.SetVertices(&stlVertices)
+	stl.SetModel(mgl32.Translate3D(0, 0, 0))
 
 	angle := 0.0
 	previousTime := glfw.GetTime()
