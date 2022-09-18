@@ -2,8 +2,8 @@ package sgl
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"runtime"
 	"strings"
 
@@ -106,14 +106,14 @@ func MakeProgram(vertexShaderSource, fragmentShaderSource string) uint32 {
 }
 
 func MakeProgramFromFile(vertPath string, fragPath string) uint32 {
-	b, err := ioutil.ReadFile(vertPath)
+	b, err := os.ReadFile(vertPath)
 	if err != nil {
 		fmt.Print(err)
 	}
 
 	vShader := fmt.Sprintf("%s\x00", string(b))
 
-	b, err = ioutil.ReadFile(fragPath)
+	b, err = os.ReadFile(fragPath)
 	if err != nil {
 		fmt.Print(err)
 	}
