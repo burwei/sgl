@@ -14,8 +14,9 @@ type Viewpoint struct {
 	Top        mgl32.Vec3
 }
 
-func NewViewpoint(width int, height int) Viewpoint {
+func NewViewpoint(width int, height int) *Viewpoint {
 	vp := Viewpoint{}
+
 	vp.Fovy = mgl32.DegToRad(45.0)
 	vp.Aspect = float32(width) / float32(height)
 	vp.Near = 0.1
@@ -25,5 +26,6 @@ func NewViewpoint(width int, height int) Viewpoint {
 	vp.Top = mgl32.Vec3{0, 1, 0}
 	vp.Projection = mgl32.Perspective(vp.Fovy, vp.Aspect, vp.Near, vp.Far)
 	vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
-	return vp
+
+	return &vp
 }

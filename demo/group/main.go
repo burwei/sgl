@@ -16,10 +16,9 @@ const (
 )
 
 func main() {
-	window := sgl.Init(width, height, title)
+	window, vp := sgl.Init(width, height, title)
 	defer sgl.Terminate()
 
-	vp := sgl.NewViewpoint(width, height)
 	ls := sgl.NewLightSrc()
 	mt := sgl.NewMaterial()
 
@@ -28,9 +27,9 @@ func main() {
 		Red:   1,
 		Green: 0.3,
 		Blue:  0.3,
-		Vp:    &vp,
-		Ls:    &ls,
-		Mt:    &mt,
+		Vp:    vp,
+		Ls:    ls,
+		Mt:    mt,
 	})
 	cube1.SetVertices(sgl.NewCube(200))
 	cube1.SetModel(mgl32.Translate3D(0, 0, 0))
@@ -41,9 +40,9 @@ func main() {
 		Red:   0.3,
 		Green: 1.0,
 		Blue:  0.3,
-		Vp:    &vp,
-		Ls:    &ls,
-		Mt:    &mt,
+		Vp:    vp,
+		Ls:    ls,
+		Mt:    mt,
 	})
 	cube2.SetVertices(sgl.NewCube(100))
 	cube2.SetModel(mgl32.Translate3D(0, 0, 0))
@@ -58,10 +57,7 @@ func main() {
 	rotateY := mgl32.Rotate3DY(-math.Pi / 6).Mat4()
 	previousTime := glfw.GetTime()
 
-	sgl.BeforeMainLoop(window, &vp)
-	for !window.ShouldClose() {
-		sgl.BeforeDrawing()
-
+	sgl.MainLoop(window, func() {
 		// calc states
 		time := glfw.GetTime()
 		elapsed := time - previousTime
@@ -97,7 +93,5 @@ func main() {
 
 		// Render
 		group.Render()
-
-		sgl.AfterDrawing(window)
-	}
+	})
 }

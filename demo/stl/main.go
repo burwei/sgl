@@ -15,15 +15,13 @@ const (
 )
 
 func main() {
-	window := sgl.Init(width, height, title)
+	window, vp := sgl.Init(width, height, title)
 	defer sgl.Terminate()
-
-	vp := sgl.NewViewpoint(width, height)
 
 	// free stl source: https://cults3d.com/en/3d-model/game/iron-man-bust_by-max7th-kimjh
 	stlVertices := sgl.ReadBinaryStlFile("ironman_bust_max7th_bin.stl")
 	stl := sgl.NewBaseObj()
-	stl.SetProgVar(sgl.BaseObjVar{Vp: &vp})
+	stl.SetProgVar(sgl.BaseObjVar{Vp: vp})
 	stl.SetVertices(&stlVertices)
 	stl.SetModel(mgl32.Translate3D(0, 0, 0))
 
@@ -31,14 +29,12 @@ func main() {
 	previousTime := glfw.GetTime()
 	rotateX := mgl32.Rotate3DX(-math.Pi / 2).Mat4()
 
-	sgl.BeforeMainLoop(window, &vp)
-	for !window.ShouldClose() {
-		sgl.BeforeDrawing()
-
-		// make the cube rotate
+	sgl.MainLoop(window, func() {
+		// make the object rotate
 		time := glfw.GetTime()
 		elapsed := time - previousTime
 		previousTime = time
+
 		angle += elapsed
 		stl.SetModel(rotateX.Mul4(
 			mgl32.Rotate3DZ(float32(angle) / 3).Mat4(),
@@ -46,7 +42,5 @@ func main() {
 
 		// Render
 		stl.Render()
-
-		sgl.AfterDrawing(window)
-	}
+	})
 }

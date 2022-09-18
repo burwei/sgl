@@ -17,15 +17,13 @@ const (
 )
 
 func main() {
-	window := sgl.Init(width, height, title)
+	window, vp := sgl.Init(width, height, title)
 	defer sgl.Terminate()
-
-	vp := sgl.NewViewpoint(width, height)
 
 	cube := objects.NewTexCubeObj()
 	cube.SetProgVar(objects.TexCubeObjVar{
 		TextureSrc: "wood.png",
-		Vp:         &vp,
+		Vp:         vp,
 	})
 	cube.SetVertices(sgl.NewUniTexCube(200))
 	cube.SetModel(mgl32.Translate3D(0, 0, 0))
@@ -34,10 +32,7 @@ func main() {
 	previousTime := glfw.GetTime()
 	rotateY := mgl32.Rotate3DY(-math.Pi / 6).Mat4()
 
-	sgl.BeforeMainLoop(window, &vp)
-	for !window.ShouldClose() {
-		sgl.BeforeDrawing()
-
+	sgl.MainLoop(window, func() {
 		// make the cube rotate
 		time := glfw.GetTime()
 		elapsed := time - previousTime
@@ -49,7 +44,5 @@ func main() {
 
 		// Render
 		cube.Render()
-
-		sgl.AfterDrawing(window)
-	}
+	})
 }

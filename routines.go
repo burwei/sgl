@@ -12,17 +12,22 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 )
 
-func Init(windowWidth int, windowHeight int, windowTitle string) *glfw.Window {
+func Init(windowWidth int, windowHeight int, windowTitle string) (*glfw.Window, *Viewpoint) {
 	runtime.LockOSThread()
-	window := InitGlfwAndOpenGL(windowWidth, windowHeight, windowTitle)
-	return window
+
+	window := initGlfwAndOpenGL(windowWidth, windowHeight, windowTitle)
+	vp := NewViewpoint(windowWidth, windowHeight)
+
+	basicSetup(window, vp)
+
+	return window, vp
 }
 
 func Terminate() {
 	glfw.Terminate()
 }
 
-func InitGlfwAndOpenGL(width int, height int, title string) *glfw.Window {
+func initGlfwAndOpenGL(width int, height int, title string) *glfw.Window {
 	// init GLFW
 	if err := glfw.Init(); err != nil {
 		panic(err)
@@ -46,6 +51,81 @@ func InitGlfwAndOpenGL(width int, height int, title string) *glfw.Window {
 	log.Println("OpenGL version", version)
 
 	return window
+}
+
+func basicSetup(window *glfw.Window, vp *Viewpoint) {
+	gl.Enable(gl.DEPTH_TEST)
+	gl.DepthFunc(gl.LESS)
+	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
+	keyCallback := glfw.KeyCallback(func(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+		// capture only Press and Repeat actions
+		if action == glfw.Release {
+			return
+		}
+		switch key {
+		case glfw.KeyUp:
+			vp.Eye = mgl32.Vec3{vp.Eye[0], vp.Eye[1] + 10, vp.Eye[2]}
+			vp.Target = mgl32.Vec3{vp.Target[0], vp.Target[1] + 10, vp.Target[2]}
+			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
+		case glfw.KeyDown:
+			vp.Eye = mgl32.Vec3{vp.Eye[0], vp.Eye[1] - 10, vp.Eye[2]}
+			vp.Target = mgl32.Vec3{vp.Target[0], vp.Target[1] - 10, vp.Target[2]}
+			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
+		case glfw.KeyLeft:
+			vp.Eye = mgl32.Vec3{vp.Eye[0] - 10, vp.Eye[1], vp.Eye[2]}
+			vp.Target = mgl32.Vec3{vp.Target[0] - 10, vp.Target[1], vp.Target[2]}
+			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
+		case glfw.KeyRight:
+			vp.Eye = mgl32.Vec3{vp.Eye[0] + 10, vp.Eye[1], vp.Eye[2]}
+			vp.Target = mgl32.Vec3{vp.Target[0] + 10, vp.Target[1], vp.Target[2]}
+			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
+		case glfw.KeyO:
+			vp.Eye = mgl32.Vec3{0, 0, 1000}
+			vp.Target = mgl32.Vec3{0, 0, 0}
+			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
+		case glfw.KeyEscape:
+			window.SetShouldClose(true)
+		}
+	})
+	scrollCallback := glfw.ScrollCallback(func(w *glfw.Window, xpos, ypos float64) {
+		forwardVec := vp.Target.Sub(vp.Eye).Mul(0.005)
+		leftVec := vp.Top.Cross(forwardVec).Mul(2)
+		forwardX := forwardVec[0] * float32(ypos)
+		forwardY := forwardVec[1] * float32(ypos)
+		forwardZ := forwardVec[2] * float32(ypos)
+		vp.Eye = mgl32.Vec3{
+			vp.Eye[0] + forwardX,
+			vp.Eye[1] + forwardY,
+			vp.Eye[2] + forwardZ,
+		}
+		vp.Target = mgl32.Vec3{
+			vp.Target[0] + float32(xpos)*leftVec[0] + forwardX,
+			vp.Target[1] + float32(xpos)*leftVec[1] + forwardY,
+			vp.Target[2] + float32(xpos)*leftVec[2] + forwardZ,
+		}
+		vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
+	})
+	window.SetKeyCallback(keyCallback)
+	window.SetScrollCallback(scrollCallback)
+}
+
+func beforeDrawing() {
+	// Clear before redraw
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+}
+
+func afterDrawing(window *glfw.Window) {
+	// Maintenance
+	window.SwapBuffers()
+	glfw.PollEvents()
+}
+
+func MainLoop(window *glfw.Window, task func()) {
+	for !window.ShouldClose() {
+		beforeDrawing()
+		task()
+		afterDrawing(window)
+	}
 }
 
 func compileShader(source string, shaderType uint32) (uint32, error) {
@@ -121,71 +201,4 @@ func MakeProgramFromFile(vertPath string, fragPath string) uint32 {
 	fShader := fmt.Sprintf("%s\x00", string(b))
 
 	return MakeProgram(vShader, fShader)
-}
-
-func BeforeMainLoop(window *glfw.Window, vp *Viewpoint) {
-	gl.Enable(gl.DEPTH_TEST)
-	gl.DepthFunc(gl.LESS)
-	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
-	keyCallback := glfw.KeyCallback(func(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-		// capture only Press and Repeat actions
-		if action == glfw.Release {
-			return
-		}
-		switch key {
-		case glfw.KeyUp:
-			vp.Eye = mgl32.Vec3{vp.Eye[0], vp.Eye[1] + 10, vp.Eye[2]}
-			vp.Target = mgl32.Vec3{vp.Target[0], vp.Target[1] + 10, vp.Target[2]}
-			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
-		case glfw.KeyDown:
-			vp.Eye = mgl32.Vec3{vp.Eye[0], vp.Eye[1] - 10, vp.Eye[2]}
-			vp.Target = mgl32.Vec3{vp.Target[0], vp.Target[1] - 10, vp.Target[2]}
-			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
-		case glfw.KeyLeft:
-			vp.Eye = mgl32.Vec3{vp.Eye[0] - 10, vp.Eye[1], vp.Eye[2]}
-			vp.Target = mgl32.Vec3{vp.Target[0] - 10, vp.Target[1], vp.Target[2]}
-			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
-		case glfw.KeyRight:
-			vp.Eye = mgl32.Vec3{vp.Eye[0] + 10, vp.Eye[1], vp.Eye[2]}
-			vp.Target = mgl32.Vec3{vp.Target[0] + 10, vp.Target[1], vp.Target[2]}
-			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
-		case glfw.KeyO:
-			vp.Eye = mgl32.Vec3{0, 0, 1000}
-			vp.Target = mgl32.Vec3{0, 0, 0}
-			vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
-		case glfw.KeyEscape:
-			window.SetShouldClose(true)
-		}
-	})
-	scrollCallback := glfw.ScrollCallback(func(w *glfw.Window, xpos, ypos float64) {
-		forwardVec := vp.Target.Sub(vp.Eye).Mul(0.005)
-		leftVec := vp.Top.Cross(forwardVec).Mul(2)
-		forwardX := forwardVec[0] * float32(ypos)
-		forwardY := forwardVec[1] * float32(ypos)
-		forwardZ := forwardVec[2] * float32(ypos)
-		vp.Eye = mgl32.Vec3{
-			vp.Eye[0] + forwardX,
-			vp.Eye[1] + forwardY,
-			vp.Eye[2] + forwardZ,
-		}
-		vp.Target = mgl32.Vec3{
-			vp.Target[0] + float32(xpos)*leftVec[0] + forwardX,
-			vp.Target[1] + float32(xpos)*leftVec[1] + forwardY,
-			vp.Target[2] + float32(xpos)*leftVec[2] + forwardZ,
-		}
-		vp.Camera = mgl32.LookAtV(vp.Eye, vp.Target, vp.Top)
-	})
-	window.SetKeyCallback(keyCallback)
-	window.SetScrollCallback(scrollCallback)
-}
-
-func BeforeDrawing() {
-	// Clear before redraw
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-}
-
-func AfterDrawing(window *glfw.Window) {
-	// Maintenance
-	window.SwapBuffers()
-	glfw.PollEvents()
 }
